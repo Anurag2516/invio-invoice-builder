@@ -5,12 +5,9 @@ export interface Invoice {
   client: User;
   issueDate: string;
   dueDate: string;
-  items: lineItems[];
+  items: LineItems[];
   currency: string;
-  subtotal: number;
-  tax: number;
-  discount: number;
-  total: number;
+  invoiceTotal: InvoiceTotal;
   notes: string;
 }
 
@@ -22,10 +19,17 @@ export interface User {
   website: string;
 }
 
-export interface lineItems {
+export interface LineItems {
   serialNumber: number;
   description: string;
   quantity: number;
   rate: number;
   amount: number;
+}
+
+export interface InvoiceTotal {
+  subtotal: number;
+  appliedTax: number;
+  appliedDiscount: number;
+  total: number;
 }
