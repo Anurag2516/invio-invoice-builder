@@ -1,4 +1,4 @@
-import type { LineItems, InvoiceTotal } from "../types/invoice";
+import type { LineItem, InvoiceTotal } from "../types/invoice";
 
 export const calculatedLineAmount = (
   quantity: number,
@@ -8,7 +8,7 @@ export const calculatedLineAmount = (
 };
 
 export const calculatedInvoiceTotal = (
-  lineItems: LineItems[],
+  lineItems: LineItem[],
   tax: number,
   discount: number,
 ): InvoiceTotal => {
