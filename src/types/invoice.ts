@@ -5,8 +5,8 @@ export interface Invoice {
   client: User;
   issueDate: string;
   dueDate: string;
-  items: LineItems[];
-  currency: string;
+  items: LineItem[];
+  currency: "INR" | "USD" | "EUR";
   invoiceTotal: InvoiceTotal;
   notes: string;
 }
@@ -19,7 +19,7 @@ export interface User {
   website: string;
 }
 
-export interface LineItems {
+export interface LineItem {
   serialNumber: number;
   description: string;
   quantity: number;
