@@ -1,7 +1,7 @@
-const generateId = (): string => crypto.randomUUID();
+ export const generateId = (): string => crypto.randomUUID();
 
-const generateInvoiceNumber = (existing: string[]): string => {
-  const nums: number[] = existing
+export const generateInvoiceNumber = (existingNumbers: string[]): string => {
+  const nums: number[] = existingNumbers
     .map((n) => parseInt(n.replace(/\D/g, ""), 10))
     .filter(Boolean);
 
