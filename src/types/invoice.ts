@@ -20,6 +20,7 @@ export interface User {
 }
 
 export interface LineItem {
+  id: string;
   serialNumber: number;
   description: string;
   quantity: number;
