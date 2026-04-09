@@ -1,7 +1,7 @@
 import type { Invoice, InvoiceTotal, LineItem, User } from "../types/invoice";
 import { generateId, generateInvoiceNumber } from "./generateId";
 
-const User = (): User => ({
+export const createUser = (): User => ({
   companyName: "",
   address: "",
   email: "",
@@ -9,7 +9,7 @@ const User = (): User => ({
   website: "",
 });
 
-const LineItem = (serialNumber: number): LineItem => ({
+export const createLineItem = (serialNumber: number): LineItem => ({
   id: generateId(),
   serialNumber,
   description: "",
@@ -19,22 +19,22 @@ const LineItem = (serialNumber: number): LineItem => ({
 });
 
 
-const InvoiceTotal = (): InvoiceTotal =>( {
+export const createInvoiceTotal = (): InvoiceTotal => ({
   subtotal: 0,
   appliedTax: 0,
   appliedDiscount: 0,
-  total: 0
-})
+  total: 0,
+});
 
-const Invoice = (existingNumbers: string[]): Invoice => ({
+export const createInvoice = (existingNumbers: string[]): Invoice => ({
   id: generateId(),
   invoiceNumber: generateInvoiceNumber(existingNumbers),
-  sender: User(),
-  client: User(),
+  sender: createUser(),
+  client: createUser(),
   issueDate: new Date().toLocaleDateString(),
   dueDate: "",
-  items: [LineItem(1)],
+  items: [createLineItem(1)],
   currency: "INR",
-  invoiceTotal: InvoiceTotal(),
-  notes: ""
-})
+  invoiceTotal: createInvoiceTotal(),
+  notes: "",
+});
