@@ -8,6 +8,8 @@ export interface Invoice {
   items: LineItem[];
   currency: "INR" | "USD" | "EUR";
   invoiceTotal: InvoiceTotal;
+  createdAt: string;
+  updatedAt: string;
   notes: string;
 }
 

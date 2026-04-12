@@ -42,5 +42,7 @@ export const invoice = z.object({
   items: z.array(lineItemSchema).min(1, "Add at least one line item"),
   currency: z.enum(["INR", "USD", "EUR"]),
   invoiceTotal: invoiceTotalSchema,
+  createdAt: z.string(),
+  updatedAt: z.string(),
   notes: z.string(),
 });

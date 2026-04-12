@@ -36,5 +36,7 @@ export const createEmptyInvoice = (existingNumbers: string[]): Invoice => ({
   items: [defaultLineItem(1)],
   currency: "INR",
   invoiceTotal: defaultInvoiceTotal(),
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
   notes: "",
 });
