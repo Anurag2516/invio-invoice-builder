@@ -18,7 +18,6 @@ export const defaultLineItem = (serialNumber: number): LineItem => ({
   amount: 0,
 });
 
-
 export const defaultInvoiceTotal = (): InvoiceTotal => ({
   subtotal: 0,
   appliedTax: 0,
@@ -26,7 +25,9 @@ export const defaultInvoiceTotal = (): InvoiceTotal => ({
   total: 0,
 });
 
-export const createEmptyInvoice = (existingNumbers: string[]): Invoice => ({
+export const createEmptyInvoice = (
+  existingNumbers: string[] = [],
+): Invoice => ({
   id: generateId(),
   invoiceNumber: generateInvoiceNumber(existingNumbers),
   sender: defaultUser(),
