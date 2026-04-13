@@ -36,3 +36,14 @@ export interface InvoiceTotal {
   appliedDiscount: number;
   total: number;
 }
+
+export interface InvoiceStore {
+  invoices: Invoice[];
+  activeInvoice: Invoice;
+  newInvoice: () => void;
+  saveInvoice: () => void;
+  deleteInvoice: (id: string) => void;
+  loadInvoice: (id: string) => void;
+  addLineItem: () => void;
+  removeLineItem: (id: string) => void;
+}
