@@ -18,15 +18,15 @@ export const calculatedInvoiceTotal = (
       .toFixed(2),
   );
 
-  const appliedTax: number =
-    tax !== 0 ? Number((subtotal * (tax / 100)).toFixed(2)) : 0;
-
   const appliedDiscount: number =
     discount !== 0 ? Number((subtotal * (discount / 100)).toFixed(2)) : 0;
 
-  const total: number = Number(
-    (subtotal + appliedTax - appliedDiscount).toFixed(2),
-  );
+  const taxableAmount = subtotal - appliedDiscount;
+
+  const appliedTax: number =
+    tax !== 0 ? Number((taxableAmount * (tax / 100)).toFixed(2)) : 0;
+
+  const total: number = Number((taxableAmount + appliedTax).toFixed(2));
 
   return { subtotal, appliedTax, appliedDiscount, total };
 };
