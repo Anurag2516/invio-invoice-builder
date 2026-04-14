@@ -56,6 +56,10 @@ export const useInvoiceStore = create<InvoiceStore>()(
         if (activeInvoice.id === id) newInvoice();
       },
 
+      updateInvoice: (invoice) => {
+        set({ activeInvoice: invoice });
+      },
+
       addLineItem: () => {
         const { activeInvoice } = get();
 
@@ -97,5 +101,5 @@ export const useInvoiceStore = create<InvoiceStore>()(
       },
     }),
     { name: "invoice-store" },
-  )
+  ),
 );

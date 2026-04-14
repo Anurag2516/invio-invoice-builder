@@ -44,6 +44,7 @@ export interface InvoiceStore {
   saveInvoice: () => void;
   deleteInvoice: (id: string) => void;
   loadInvoice: (id: string) => void;
+  updateInvoice: (invoice: Invoice) => void;
   addLineItem: () => void;
   removeLineItem: (id: string) => void;
 }
