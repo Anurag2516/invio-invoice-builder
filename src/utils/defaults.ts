@@ -34,7 +34,7 @@ export const createEmptyInvoice = (
   client: defaultUser(),
   issueDate: new Date().toLocaleDateString(),
   dueDate: "",
-  items: [defaultLineItem(1)],
+  lineItems: [defaultLineItem(1)],
   currency: "INR",
   invoiceTotal: defaultInvoiceTotal(),
   createdAt: new Date().toISOString(),

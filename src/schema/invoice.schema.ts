@@ -39,7 +39,7 @@ export const invoice = z.object({
   client: userSchema,
   issueDate: z.string(),
   dueDate: z.string(),
-  items: z.array(lineItemSchema).min(1, "Add at least one line item"),
+  lineItems: z.array(lineItemSchema).min(1, "Add at least one line item"),
   currency: z.enum(["INR", "USD", "EUR"]),
   invoiceTotal: invoiceTotalSchema,
   createdAt: z.string(),

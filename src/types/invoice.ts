@@ -5,7 +5,7 @@ export interface Invoice {
   client: User;
   issueDate: string;
   dueDate: string;
-  items: LineItem[];
+  lineItems: LineItem[];
   currency: "INR" | "USD" | "EUR";
   invoiceTotal: InvoiceTotal;
   createdAt: string;
