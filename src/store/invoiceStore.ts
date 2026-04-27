@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import type { Invoice, InvoiceStore } from "../types/invoice";
 import { createEmptyInvoice, defaultLineItem } from "../utils/defaults";
-import { calculatedInvoiceTotal } from "../utils/calculations";
+import { calculateInvoiceTotal } from "../utils/calculations";
 import { persist } from "zustand/middleware";
 
 export const useInvoiceStore = create<InvoiceStore>()(
@@ -56,7 +56,7 @@ export const useInvoiceStore = create<InvoiceStore>()(
         if (activeInvoice.id === id) newInvoice();
       },
 
-      updateInvoice: (invoice) => {
+      updateActiveInvoice: (invoice) => {
         set({ activeInvoice: invoice });
       },
 
@@ -85,7 +85,7 @@ export const useInvoiceStore = create<InvoiceStore>()(
           serialNumber: index + 1,
         }));
 
-        const totals = calculatedInvoiceTotal(
+        const totals = calculateInvoiceTotal(
           reindexedItems,
           activeInvoice.invoiceTotal.appliedTax,
           activeInvoice.invoiceTotal.appliedDiscount,

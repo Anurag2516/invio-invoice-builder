@@ -1,13 +1,13 @@
 import type { LineItem, InvoiceTotal } from "../types/invoice";
 
-export const calculatedLineAmount = (
+export const calculateLineAmount = (
   quantity: number,
   rate: number,
 ): number => {
   return Number((quantity * rate).toFixed(2));
 };
 
-export const calculatedInvoiceTotal = (
+export const calculateInvoiceTotal = (
   lineItems: LineItem[],
   tax: number,
   discount: number,
