@@ -1,7 +1,10 @@
 import express from 'express';
 import authRoutes from './routes/auth.routes'
 import invoiceRoutes from "./routes/invoice.routes";
+import userRoutes from "./routes/user.routes";
+import clientRoutes from "./routes/client.routes";
 import cookieParser from 'cookie-parser';
+import errorHandler from './middleware/error.middleware';
 
 const app = express()
 
@@ -12,6 +15,9 @@ app.use(cookieParser())
 
 app.use("/api/auth", authRoutes)
 app.use("/api/invoice", invoiceRoutes);
+app.use("/api/user", userRoutes)
+app.use("/api/client", clientRoutes)
+app.use(errorHandler);
 
 
 export default app;
