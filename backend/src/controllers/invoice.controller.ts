@@ -1,13 +1,13 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { prisma } from "../config/db";
 import { InvoiceInput, invoiceSchema } from "../schemas/invoice.schema";
-import { ParamsDictionary } from "express-serve-static-core";
+import { Params } from "../types/params";
 
-interface InvoiceParams extends ParamsDictionary {
-  id: string;
-}
-
-const createInvoice = async (req: Request, res: Response): Promise<void> => {
+const createInvoice = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
   try {
     const parsedInvoice = invoiceSchema.safeParse(req.body.invoice);
 
@@ -58,17 +58,18 @@ const createInvoice = async (req: Request, res: Response): Promise<void> => {
 
     res.status(201).json({
       success: true,
-      data: newInvoice,
       message: "Invoice created successfully",
+      data: newInvoice,
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Internal server error" });
+    next(error);
   }
 };
 
 const updateInvoice = async (
-  req: Request<InvoiceParams>,
+  req: Request<Params>,
   res: Response,
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const parsedInvoice = invoiceSchema.safeParse(req.body.invoice);
@@ -132,17 +133,18 @@ const updateInvoice = async (
 
     res.status(200).json({
       success: true,
-      data: updatedInvoice,
       message: "Invoice updated successfully",
+      data: updatedInvoice,
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Internal server error" });
+    next(error);
   }
 };
 
 const getInvoice = async (
-  req: Request<InvoiceParams>,
+  req: Request<Params>,
   res: Response,
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const invoiceId = req.params.id;
@@ -185,13 +187,14 @@ const getInvoice = async (
 
     res.status(200).json({ success: true, data: invoice });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Internal server error" });
+    next(error);
   }
 };
 
 const getInvoices = async (
-  req: Request<InvoiceParams>,
+  req: Request,
   res: Response,
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const invoice = await prisma.invoice.findMany({
@@ -222,20 +225,21 @@ const getInvoices = async (
     if (!invoice) {
       res.status(404).json({
         success: false,
-        message: "Invoice not found",
+        message: "Invoices not found",
       });
       return;
     }
 
     res.status(200).json({ success: true, data: invoice });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Internal server error" });
+    next(error);
   }
 };
 
 const deleteInvoice = async (
-  req: Request<InvoiceParams>,
+  req: Request<Params>,
   res: Response,
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const invoiceId = req.params.id;
@@ -265,7 +269,7 @@ const deleteInvoice = async (
       message: "Invoice deleted successfully",
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Internal server error" });
+    next(error);
   }
 };
 
