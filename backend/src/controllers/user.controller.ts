@@ -1,0 +1,71 @@
+import { NextFunction, Request, Response } from "express";
+import { UpdateUserInput, updateUserSchema } from "../schemas/user.schema";
+import { prisma } from "../config/db";
+
+const getProfile = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const userId = req.user.userId;
+
+    const user = await prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+      omit: {
+        password: true,
+      },
+    });
+    if (!user) {
+      res.status(404).json({ success: false, message: "User not found" });
+      return;
+    }
+
+    res.status(200).json({ success: true, data: user });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const updateProfile = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const parsedProfile = updateUserSchema.safeParse(req.body.user);
+
+    if (!parsedProfile.success) {
+      res.status(400).json({
+        success: false,
+        message: "Invalid Profile Details",
+        errors: parsedProfile.error.issues.map((i) => ({
+          field: i.path.join("."),
+          message: i.message,
+        })),
+      });
+      return;
+    }
+
+    const profileData: UpdateUserInput = parsedProfile.data;
+    const userId = req.user?.userId;
+
+    const updateProfile = await prisma.user.update({
+      where: { id: userId },
+      data: { ...profileData },
+      omit: { password: true },
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      data: updateProfile,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export { getProfile, updateProfile };
