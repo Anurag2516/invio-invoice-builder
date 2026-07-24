@@ -1,23 +1,25 @@
-import express from 'express';
-import authRoutes from './routes/auth.routes'
+import express from "express";
+import cors from "cors";
+import authRoutes from "./routes/auth.routes";
 import invoiceRoutes from "./routes/invoice.routes";
 import userRoutes from "./routes/user.routes";
 import clientRoutes from "./routes/client.routes";
-import cookieParser from 'cookie-parser';
-import errorHandler from './middleware/error.middleware';
+import cookieParser from "cookie-parser";
+import errorHandler from "./middleware/error.middleware";
 
-const app = express()
+const app = express();
+app.use(cors({
+    origin: process.env.FRONTEND_URL || "http://localhost:5173",
+    credentials: true,
+  }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
-app.use(express.json())
-app.use(express.urlencoded({extended: true}))
-app.use(cookieParser())
-
-
-app.use("/api/auth", authRoutes)
+app.use("/api/auth", authRoutes);
 app.use("/api/invoice", invoiceRoutes);
-app.use("/api/user", userRoutes)
-app.use("/api/client", clientRoutes)
+app.use("/api/user", userRoutes);
+app.use("/api/client", clientRoutes);
 app.use(errorHandler);
-
 
 export default app;
