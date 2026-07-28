@@ -4,9 +4,47 @@ import bcrypt from "bcrypt";
 import { generateToken } from "../utils/generateToken";
 import {
   LoginInput,
+  loginSchema,
   RegisterInput,
   registerSchema,
 } from "../schemas/user.schema";
+
+const getMe = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({
+        message: "Session expired or invalid token.",
+      });
+      return;
+    }
+
+    const userId = req.user.userId;
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { name: true },
+    });
+
+    if (!user) {
+      res.status(404).json({
+        message: "User not found.",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      id: userId,
+      name: user.name,
+      email: req.user.email,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 const register = async (
   req: Request,
@@ -14,12 +52,10 @@ const register = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const parsedUser = registerSchema.safeParse(req.body.user);
+    const parsedUser = registerSchema.safeParse(req.body);
 
     if (!parsedUser.success) {
       res.status(400).json({
-        success: false,
-        message: "Invalid User",
         errors: parsedUser.error.issues.map((i) => ({
           field: i.path.join("."),
           message: i.message,
@@ -36,7 +72,6 @@ const register = async (
 
     if (userExists) {
       res.status(409).json({
-        success: false,
         message: "User with this email already exists",
       });
       return;
@@ -51,9 +86,8 @@ const register = async (
     generateToken(newUser.id, newUser.email, res);
 
     res.status(201).json({
-      success: true,
-      message: "User registered successfully",
-      data: { name: newUser.name, email: newUser.email },
+      name: newUser.name,
+      email: newUser.email,
     });
   } catch (error) {
     next(error);
@@ -66,12 +100,10 @@ const login = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const parsedUser = registerSchema.safeParse(req.body.user);
+    const parsedUser = loginSchema.safeParse(req.body);
 
     if (!parsedUser.success) {
       res.status(400).json({
-        success: false,
-        message: "Invalid User",
         errors: parsedUser.error.issues.map((i) => ({
           field: i.path.join("."),
           message: i.message,
@@ -87,18 +119,15 @@ const login = async (
     });
 
     if (!user || !(await bcrypt.compare(password, user.password))) {
-      res
-        .status(401)
-        .json({ success: false, message: "Invalid email or password" });
+      res.status(401).json({ message: "Invalid email or password" });
       return;
     }
 
     generateToken(user.id, user.email, res);
 
     res.status(200).json({
-      success: true,
-      message: "Logged in successfully",
-      data: { name: user.name, email: user.email },
+      name: user.name,
+      email: user.email,
     });
   } catch (error) {
     next(error);
@@ -114,7 +143,7 @@ const logout = (req: Request, res: Response, next: NextFunction): void => {
       path: "/",
     });
 
-    res.status(200).json({ success: true, message: "Logged out successfully" });
+    res.status(204).send();
   } catch (error) {
     next(error);
   }
@@ -141,10 +170,10 @@ const deleteAccount = async (
       path: "/",
     });
 
-    res.status(200).json({ success: true, message: "Account deleted successfully" });
+    res.status(204).send();
   } catch (error) {
     next(error);
   }
 };
 
-export { register, login, logout, deleteAccount };
+export { getMe, register, login, logout, deleteAccount };
