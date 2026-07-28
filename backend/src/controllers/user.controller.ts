@@ -19,11 +19,11 @@ const getProfile = async (
       },
     });
     if (!user) {
-      res.status(404).json({ success: false, message: "User not found" });
+      res.status(404).json({ message: "User not found" });
       return;
     }
 
-    res.status(200).json({ success: true, data: user });
+    res.status(200).json(user);
   } catch (error) {
     next(error);
   }
@@ -35,12 +35,10 @@ const updateProfile = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const parsedProfile = updateUserSchema.safeParse(req.body.user);
+    const parsedProfile = updateUserSchema.safeParse(req.body);
 
     if (!parsedProfile.success) {
       res.status(400).json({
-        success: false,
-        message: "Invalid Profile Details",
         errors: parsedProfile.error.issues.map((i) => ({
           field: i.path.join("."),
           message: i.message,
@@ -58,11 +56,7 @@ const updateProfile = async (
       omit: { password: true },
     });
 
-    res.status(200).json({
-      success: true,
-      message: "Profile updated successfully",
-      data: updateProfile,
-    });
+    res.status(200).json(updateProfile);
   } catch (error) {
     next(error);
   }

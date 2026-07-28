@@ -17,18 +17,18 @@ export function isAuthenticated(
 
   if (authHeader?.startsWith("Bearer ")) {
     token = authHeader.split(" ")[1];
-  } else if (req.cookies?.token) {
-    token = req.cookies.token;
+  } else if (req.cookies?.jwt) {
+    token = req.cookies.jwt;
   }
 
   if (!token) {
-    res.status(401).json({ success: false, message: "No token provided" });
+    res.status(401).json({ message: "No token provided" });
     return;
   }
 
   const secret = process.env.JWT_SECRET_KEY;
   if (!secret) {
-    res.status(500).json({ success: false, message: "Internal server error" });
+    res.status(500).json({ message: "Internal server error" });
     return;
   }
 
@@ -38,9 +38,9 @@ export function isAuthenticated(
     next();
   } catch (err) {
     if (err instanceof jwt.TokenExpiredError) {
-      res.status(401).json({ success: false, message: "Token expired" });
+      res.status(401).json({ message: "Token expired" });
     } else {
-      res.status(401).json({ success: false, message: "Invalid token" });
+      res.status(401).json({ message: "Invalid token" });
     }
   }
 }

@@ -9,12 +9,10 @@ const addClient = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const parsedClient = clientSchema.safeParse(req.body.client);
+    const parsedClient = clientSchema.safeParse(req.body);
 
     if (!parsedClient.success) {
       res.status(400).json({
-        success: false,
-        message: "Invalid Profile Details",
         errors: parsedClient.error.issues.map((i) => ({
           field: i.path.join("."),
           message: i.message,
@@ -35,11 +33,7 @@ const addClient = async (
       create: { userId: req.user.userId, ...client },
     });
 
-    res.status(200).json({
-      success: true,
-      message: "Client added successfully",
-      data: addClient,
-    });
+    res.status(200).json(addClient);
   } catch (error) {
     next(error);
   }
@@ -64,13 +58,12 @@ const getClient = async (
 
     if (!client) {
       res.status(404).json({
-        success: false,
         message: "Client not found",
       });
       return;
     }
 
-    res.status(200).json({ success: true, data: client });
+    res.status(200).json(client);
   } catch (error) {
     next(error);
   }
@@ -90,13 +83,12 @@ const getClients = async (
 
     if (!clients) {
       res.status(404).json({
-        success: false,
         message: "Clients not found",
       });
       return;
     }
 
-    res.status(200).json({ success: true, data: clients });
+    res.status(200).json(clients);
   } catch (error) {}
 };
 
@@ -116,7 +108,6 @@ const deleteClient = async (
 
     if (!clientExists) {
       res.status(404).json({
-        success: false,
         message: "Client not found",
       });
       return;
@@ -128,10 +119,7 @@ const deleteClient = async (
       },
     });
 
-    res.status(200).json({
-      success: true,
-      message: "Client deleted successfully",
-    });
+    res.status(204).send();
   } catch (error) {
     next(error);
   }

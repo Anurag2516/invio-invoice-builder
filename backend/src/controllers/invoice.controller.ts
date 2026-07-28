@@ -9,12 +9,10 @@ const createInvoice = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const parsedInvoice = invoiceSchema.safeParse(req.body.invoice);
+    const parsedInvoice = invoiceSchema.safeParse(req.body);
 
     if (!parsedInvoice.success) {
       res.status(400).json({
-        success: false,
-        message: "Invalid invoice",
         errors: parsedInvoice.error.issues.map((i) => ({
           field: i.path.join("."),
           message: i.message,
@@ -56,11 +54,7 @@ const createInvoice = async (
       },
     });
 
-    res.status(201).json({
-      success: true,
-      message: "Invoice created successfully",
-      data: newInvoice,
-    });
+    res.status(201).json(newInvoice);
   } catch (error) {
     next(error);
   }
@@ -72,12 +66,10 @@ const updateInvoice = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const parsedInvoice = invoiceSchema.safeParse(req.body.invoice);
+    const parsedInvoice = invoiceSchema.safeParse(req.body);
 
     if (!parsedInvoice.success) {
       res.status(400).json({
-        success: false,
-        message: "Invalid Invoice",
         errors: parsedInvoice.error.issues.map((i) => ({
           field: i.path.join("."),
           message: i.message,
@@ -94,7 +86,7 @@ const updateInvoice = async (
     });
 
     if (!exists) {
-      res.status(404).json({ success: false, message: "Invoice not found" });
+      res.status(404).json({ message: "Invoice not found" });
       return;
     }
 
@@ -131,11 +123,7 @@ const updateInvoice = async (
       },
     });
 
-    res.status(200).json({
-      success: true,
-      message: "Invoice updated successfully",
-      data: updatedInvoice,
-    });
+    res.status(200).json(updatedInvoice);
   } catch (error) {
     next(error);
   }
@@ -179,13 +167,12 @@ const getInvoice = async (
 
     if (!invoice) {
       res.status(404).json({
-        success: false,
         message: "Invoice not found",
       });
       return;
     }
 
-    res.status(200).json({ success: true, data: invoice });
+    res.status(200).json(invoice);
   } catch (error) {
     next(error);
   }
@@ -224,13 +211,12 @@ const getInvoices = async (
 
     if (!invoice) {
       res.status(404).json({
-        success: false,
         message: "Invoices not found",
       });
       return;
     }
 
-    res.status(200).json({ success: true, data: invoice });
+    res.status(200).json(invoice);
   } catch (error) {
     next(error);
   }
@@ -252,7 +238,6 @@ const deleteInvoice = async (
 
     if (!invoiceExists) {
       res.status(404).json({
-        success: false,
         message: "Invoice not found",
       });
       return;
@@ -264,10 +249,7 @@ const deleteInvoice = async (
       },
     });
 
-    res.status(200).json({
-      success: true,
-      message: "Invoice deleted successfully",
-    });
+    res.status(204).send();
   } catch (error) {
     next(error);
   }
