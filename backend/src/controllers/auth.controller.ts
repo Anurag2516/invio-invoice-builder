@@ -86,6 +86,7 @@ const register = async (
     generateToken(newUser.id, newUser.email, res);
 
     res.status(201).json({
+      id: newUser.id,
       name: newUser.name,
       email: newUser.email,
     });
@@ -126,6 +127,7 @@ const login = async (
     generateToken(user.id, user.email, res);
 
     res.status(200).json({
+      id: user.id,
       name: user.name,
       email: user.email,
     });
