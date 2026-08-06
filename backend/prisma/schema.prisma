@@ -20,8 +20,8 @@ model User {
   accountHolderName String?
   accountNumber     String?
   createdAt         DateTime  @default(now())
+  updatedAt         DateTime @updatedAt
   client            Client[]
-  invoice           Invoice[]
 }
 
 model Client {
@@ -48,9 +48,11 @@ model Invoice {
   status            Status     @default(Draft)
   userId            String
   clientId          String
+  client            Client     @relation(fields: [clientId], references: [id], onDelete: Cascade)
   issueDate         DateTime   @default(now())
   dueDate           DateTime
   currency          Currencies @default(INR)
+  lineItems         LineItem[]
   subtotal          Decimal    @db.Decimal(12, 2)
   taxRate           Decimal    @db.Decimal(5, 2)
   discountRate      Decimal    @db.Decimal(5, 2)
@@ -63,9 +65,20 @@ model Invoice {
   accountHolderName String?
   accountNumber     String?
   notes             String?
-  client            Client     @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  sender            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  lineItems         LineItem[]
+
+  senderName        String?
+  senderEmail       String?
+  senderCompany     String?
+  senderAddress     String?
+  senderPhone       String?
+  senderWebsite     String?
+  
+  snapshotClientName        String?
+  snapshotClientEmail       String?
+  snapshotClientCompany     String?
+  snapshotClientAddress     String?
+  snapshotClientPhone       String?
+  snapshotClientWebsite     String?
 
   @@unique([userId, invoiceNumber])
   @@index([userId])
