@@ -15,14 +15,14 @@ export interface Login {
   password: string;
 }
 
-interface User {
+export interface AuthUser {
   id: string;
   name: string;
   email: string;
 }
 
 export interface AuthStore {
-  user: User | null;
+  user: AuthUser | null;
   isAuthLoading: boolean;
   isSubmitting: boolean;
   isAuthenticated: boolean;
