@@ -5,7 +5,7 @@ import { getProfile } from "../controllers/user.controller";
 
 const router = Router()
 
-router.put("/profile", isAuthenticated, updateProfile)
-router.get("/profile", isAuthenticated, getProfile);
+router.get("/getProfile", isAuthenticated, getProfile);
+router.put("/updateProfile", isAuthenticated, updateProfile);
 
 export default router
