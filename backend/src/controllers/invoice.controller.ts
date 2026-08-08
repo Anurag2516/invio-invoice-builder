@@ -1,19 +1,68 @@
 import { NextFunction, Request, Response } from "express";
 import { prisma } from "../config/db";
-import { InvoiceInput, invoiceSchema } from "../schemas/invoice.schema";
+import {
+  AutoSaveInput,
+  autoSaveSchema,
+  CreateDraftInput,
+  createDraftSchema,
+  InvoiceInput,
+  invoiceSchema,
+} from "../schemas/invoice.schema";
 import { Params } from "../types/params";
 
-const createInvoice = async (
+export async function getNextInvoiceNumber(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const lastInvoice = await prisma.invoice.findFirst({
+      where: { userId: req.user!.userId },
+      orderBy: { createdAt: "desc" },
+      select: { invoiceNumber: true },
+    });
+
+    let nextNumber = "INV-001";
+
+    if (lastInvoice) {
+      const last = parseInt(lastInvoice.invoiceNumber.split("-")[1]);
+      nextNumber = `INV-${String(last + 1).padStart(3, "0")}`;
+    }
+
+    res.status(200).json(nextNumber);
+  } catch (error) {
+    next(error);
+  }
+}
+
+const createDraftInvoice = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const parsedInvoice = invoiceSchema.safeParse(req.body);
+    const user = await prisma.user.findUnique({
+      where: {
+        id: req.user.userId,
+      },
+      omit: {
+        id: true,
+        password: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
 
-    if (!parsedInvoice.success) {
+    if (!user) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+
+    const parsed = createDraftSchema.safeParse(req.body);
+
+    if (!parsed.success) {
       res.status(400).json({
-        errors: parsedInvoice.error.issues.map((i) => ({
+        errors: parsed.error.issues.map((i) => ({
           field: i.path.join("."),
           message: i.message,
         })),
@@ -21,36 +70,26 @@ const createInvoice = async (
       return;
     }
 
-    const invoice: InvoiceInput = parsedInvoice.data;
-    const { lineItems, ...invoiceData } = invoice;
+    const invoice: CreateDraftInput = parsed.data;
+    const { invoiceNumber } = invoice;
 
     const newInvoice = await prisma.invoice.create({
       data: {
         userId: req.user!.userId,
-        ...invoiceData,
-        lineItems: { create: lineItems },
+        invoiceNumber,
+        status: "Draft",
+        senderName: user?.name,
+        senderEmail: user?.email,
+        senderCompany: user?.companyName,
+        senderAddress: user?.address,
+        senderPhone: user?.phone,
+        senderWebsite: user?.website,
+        accountHolderName: user?.accountHolderName,
+        accountNumber: user?.accountNumber,
+        bankName: user?.bankName,
       },
-      omit: {
-        userId: true,
-        clientId: true,
-      },
-      include: {
-        lineItems: {
-          omit: {
-            id: true,
-            invoiceId: true,
-          },
-        },
-        sender: {
-          omit: {
-            id: true,
-            password: true,
-            createdAt: true,
-          },
-        },
-        client: {
-          omit: { id: true, userId: true, createdAt: true, updatedAt: true },
-        },
+      select: {
+        id: true,
       },
     });
 
@@ -60,14 +99,61 @@ const createInvoice = async (
   }
 };
 
-const updateInvoice = async (
+const autoSaveInvoice = async (
   req: Request<Params>,
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const parsedInvoice = invoiceSchema.safeParse(req.body);
+    const parsed = autoSaveSchema.safeParse(req.body);
 
+    if (!parsed.success) {
+      res.status(400).json({
+        errors: parsed.error.issues.map((i) => ({
+          field: i.path.join("."),
+          message: i.message,
+        })),
+      });
+      return;
+    }
+    const { lineItems, ...invoiceData }: AutoSaveInput = parsed.data;
+    const invoiceId = req.params.id;
+
+    const invoiceExists = await prisma.invoice.findUnique({
+      where: { id: invoiceId },
+    });
+
+    if (!invoiceExists) {
+      res.status(404).json({ message: "Invoice not found" });
+      return;
+    }
+
+    await prisma.invoice.update({
+      where: { id: invoiceId },
+      data: {
+        ...invoiceData,
+        ...(lineItems && {
+          lineItems: {
+            deleteMany: {},
+            create: lineItems,
+          },
+        }),
+      },
+    });
+
+    res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
+};
+
+const saveInvoice = async (
+  req: Request<Params>,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const parsedInvoice = invoiceSchema.safeParse(req.body);
     if (!parsedInvoice.success) {
       res.status(400).json({
         errors: parsedInvoice.error.issues.map((i) => ({
@@ -77,53 +163,44 @@ const updateInvoice = async (
       });
       return;
     }
-
-    const invoice: InvoiceInput = parsedInvoice.data;
+    const { lineItems, ...invoice }: InvoiceInput = parsedInvoice.data;
     const invoiceId = req.params.id;
 
-    const exists = await prisma.invoice.findUnique({
-      where: { id: invoiceId },
+    const invoiceExists = await prisma.invoice.findUnique({
+      where: {
+        id: invoiceId,
+      },
     });
 
-    if (!exists) {
+    if (!invoiceExists) {
       res.status(404).json({ message: "Invoice not found" });
       return;
     }
 
-    const { lineItems, ...invoiceData } = invoice;
+    if (invoiceExists.status !== "Draft") {
+      res.status(403).json({ message: "Only draft invoices can be edited" });
+    }
 
-    const updatedInvoice = await prisma.invoice.update({
-      where: { id: invoiceId },
+    const savedInvoice = await prisma.invoice.update({
+      where: {
+        id: invoiceId,
+      },
       data: {
-        userId: req.user!.userId,
-        ...invoiceData,
+        ...invoice,
         lineItems: {
           deleteMany: {},
           create: lineItems,
         },
       },
-      omit: { userId: true, clientId: true },
       include: {
-        lineItems: {
-          omit: {
-            id: true,
-            invoiceId: true,
-          },
-        },
-        sender: {
-          omit: {
-            id: true,
-            password: true,
-            createdAt: true,
-          },
-        },
-        client: {
-          omit: { id: true, userId: true, createdAt: true, updatedAt: true },
-        },
+        lineItems: { omit: { invoiceId: true } },
+      },
+      omit: {
+        userId: true,
       },
     });
 
-    res.status(200).json(updatedInvoice);
+    res.status(200).json(savedInvoice);
   } catch (error) {
     next(error);
   }
@@ -143,24 +220,12 @@ const getInvoice = async (
       },
       omit: {
         userId: true,
-        clientId: true,
       },
       include: {
         lineItems: {
           omit: {
-            id: true,
             invoiceId: true,
           },
-        },
-        sender: {
-          omit: {
-            id: true,
-            password: true,
-            createdAt: true,
-          },
-        },
-        client: {
-          omit: { id: true, userId: true, createdAt: true, updatedAt: true },
         },
       },
     });
@@ -184,37 +249,22 @@ const getInvoices = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
+    const user = req.user;
     const invoice = await prisma.invoice.findMany({
+      where: {
+        userId: user.userId,
+      },
       omit: {
         userId: true,
-        clientId: true,
       },
       include: {
         lineItems: {
           omit: {
-            id: true,
             invoiceId: true,
           },
         },
-        sender: {
-          omit: {
-            id: true,
-            password: true,
-            createdAt: true,
-          },
-        },
-        client: {
-          omit: { id: true, userId: true, createdAt: true, updatedAt: true },
-        },
       },
     });
-
-    if (!invoice) {
-      res.status(404).json({
-        message: "Invoices not found",
-      });
-      return;
-    }
 
     res.status(200).json(invoice);
   } catch (error) {
@@ -255,4 +305,11 @@ const deleteInvoice = async (
   }
 };
 
-export { createInvoice, updateInvoice, getInvoice, getInvoices, deleteInvoice };
+export {
+  createDraftInvoice,
+  autoSaveInvoice,
+  saveInvoice,
+  getInvoice,
+  getInvoices,
+  deleteInvoice,
+};
