@@ -1,21 +1,32 @@
-import type { Invoice } from "@/types/invoice";
+import { useDeleteInvoices } from "@/hooks/useInvoices";
 import { Trash2 } from "lucide-react";
+import { Spinner } from "./spinner";
 
 interface DeleteConfirmModalProps {
-  handleConfirmDelete: () => void;
-  handleCancelDelete: () => void;
-  deleteTargetInvoice: Invoice | undefined;
+  deleteModalId: string | null;
+  invoiceNumber?: string;
+  onClose: () => void;
 }
 
 const DeleteConfirmModal = ({
-  handleConfirmDelete,
-  handleCancelDelete,
-  deleteTargetInvoice,
+  deleteModalId,
+  invoiceNumber,
+  onClose,
 }: DeleteConfirmModalProps) => {
+  const { mutate: deleteInvoice, isPending } = useDeleteInvoices();
+
+  const handleConfirmDelete = () => {
+    if (deleteModalId) {
+      deleteInvoice(deleteModalId, {
+        onSuccess: () => onClose(),
+      });
+    }
+  };
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center px-4"
-      onClick={handleCancelDelete}
+      onClick={onClose}
     >
       <div className="absolute inset-0 bg-black/60" />
 
@@ -33,8 +44,8 @@ const DeleteConfirmModal = ({
             </h3>
           </div>
           <p className="text-foreground/70 text-xs mt-1 leading-relaxed">
-            {deleteTargetInvoice
-              ? `${deleteTargetInvoice.invoiceNumber}${deleteTargetInvoice.client.name ? ` · ${deleteTargetInvoice.client.name}` : ""} will be permanently removed.`
+            {invoiceNumber
+              ? `Are you sure you want to delete ${invoiceNumber}?`
               : "This invoice will be permanently removed."}
           </p>
         </div>
@@ -42,17 +53,24 @@ const DeleteConfirmModal = ({
         <div className="flex gap-2">
           <button
             type="button"
-            onClick={handleCancelDelete}
+            onClick={onClose}
             className="flex-1 py-2 rounded-lg text-xs font-semibold tracking-wide uppercase border border-foreground/25 text-foreground/60 hover:text-foreground/80 hover:bg-foreground/5 transition-colors cursor-pointer"
           >
             Cancel
           </button>
           <button
             type="button"
+            disabled={isPending}
             onClick={handleConfirmDelete}
-            className="flex-1 py-2 rounded-lg text-xs font-semibold tracking-wide uppercase bg-red-500/80 hover:bg-red-500 text-white transition-colors cursor-pointer"
+            className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-semibold tracking-wide uppercase bg-red-500/80 hover:bg-red-500 text-white transition-colors cursor-pointer disabled:opacity-70"
           >
-            Delete
+            {isPending ? (
+              <>
+                <Spinner /> Deleting...
+              </>
+            ) : (
+              "Delete"
+            )}
           </button>
         </div>
       </div>
