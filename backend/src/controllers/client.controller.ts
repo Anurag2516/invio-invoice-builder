@@ -33,7 +33,7 @@ const addClient = async (
       create: { userId: req.user.userId, ...client },
     });
 
-    res.status(200).json(addClient);
+    res.status(201).json(addClient);
   } catch (error) {
     next(error);
   }
@@ -50,6 +50,7 @@ const getClient = async (
     const client = await prisma.client.findUnique({
       where: {
         id: clientId,
+        userId: req.user.userId
       },
       omit: {
         userId: true,
@@ -76,6 +77,9 @@ const getClients = async (
 ): Promise<void> => {
   try {
     const clients = await prisma.client.findMany({
+      where: {
+        userId: req.user.userId
+      },
       omit: {
         userId: true,
       },
@@ -89,7 +93,9 @@ const getClients = async (
     }
 
     res.status(200).json(clients);
-  } catch (error) {}
+  } catch (error) {
+    next(error)
+  }
 };
 
 const deleteClient = async (
@@ -103,6 +109,7 @@ const deleteClient = async (
     const clientExists = await prisma.client.findUnique({
       where: {
         id: clientId,
+        userId: req.user.userId
       },
     });
 
