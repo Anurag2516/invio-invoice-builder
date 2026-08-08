@@ -3,37 +3,10 @@ import { prisma } from "../config/db";
 import {
   AutoSaveInput,
   autoSaveSchema,
-  CreateDraftInput,
-  createDraftSchema,
   InvoiceInput,
   invoiceSchema,
 } from "../schemas/invoice.schema";
 import { Params } from "../types/params";
-
-export async function getNextInvoiceNumber(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
-  try {
-    const lastInvoice = await prisma.invoice.findFirst({
-      where: { userId: req.user!.userId },
-      orderBy: { createdAt: "desc" },
-      select: { invoiceNumber: true },
-    });
-
-    let nextNumber = "INV-001";
-
-    if (lastInvoice) {
-      const last = parseInt(lastInvoice.invoiceNumber.split("-")[1]);
-      nextNumber = `INV-${String(last + 1).padStart(3, "0")}`;
-    }
-
-    res.status(200).json(nextNumber);
-  } catch (error) {
-    next(error);
-  }
-}
 
 const createDraftInvoice = async (
   req: Request,
@@ -58,42 +31,53 @@ const createDraftInvoice = async (
       return;
     }
 
-    const parsed = createDraftSchema.safeParse(req.body);
-
-    if (!parsed.success) {
-      res.status(400).json({
-        errors: parsed.error.issues.map((i) => ({
-          field: i.path.join("."),
-          message: i.message,
-        })),
+    const result = await prisma.$transaction(async (tx) => {
+      const lastInvoice = await tx.invoice.findFirst({
+        where: { userId: req.user!.userId },
+        orderBy: { createdAt: "desc" },
+        select: { invoiceNumber: true },
       });
-      return;
-    }
 
-    const invoice: CreateDraftInput = parsed.data;
-    const { invoiceNumber } = invoice;
+      let nextNumber = "INV-001";
 
-    const newInvoice = await prisma.invoice.create({
-      data: {
-        userId: req.user!.userId,
-        invoiceNumber,
-        status: "Draft",
-        senderName: user?.name,
-        senderEmail: user?.email,
-        senderCompany: user?.companyName,
-        senderAddress: user?.address,
-        senderPhone: user?.phone,
-        senderWebsite: user?.website,
-        accountHolderName: user?.accountHolderName,
-        accountNumber: user?.accountNumber,
-        bankName: user?.bankName,
-      },
-      select: {
-        id: true,
-      },
+      if (lastInvoice) {
+        const last = parseInt(lastInvoice.invoiceNumber.split("-")[1]);
+        nextNumber = `INV-${String(last + 1).padStart(3, "0")}`;
+      }
+
+      return await tx.invoice.create({
+        data: {
+          userId: req.user!.userId,
+          invoiceNumber: nextNumber,
+          status: "Draft",
+          senderName: user?.name,
+          senderEmail: user?.email,
+          senderCompany: user?.companyName,
+          senderAddress: user?.address,
+          senderPhone: user?.phone,
+          senderWebsite: user?.website,
+          accountHolderName: user?.accountHolderName,
+          accountNumber: user?.accountNumber,
+          bankName: user?.bankName,
+        },
+        select: {
+          id: true,
+          invoiceNumber: true,
+          status: true,
+          senderName: true,
+          senderEmail: true,
+          senderCompany: true,
+          senderAddress: true,
+          senderPhone: true,
+          senderWebsite: true,
+          bankName: true,
+          accountHolderName: true,
+          accountNumber: true,
+        },
+      });
     });
 
-    res.status(201).json(newInvoice);
+    res.status(201).json(result);
   } catch (error) {
     next(error);
   }
@@ -120,7 +104,7 @@ const autoSaveInvoice = async (
     const invoiceId = req.params.id;
 
     const invoiceExists = await prisma.invoice.findUnique({
-      where: { id: invoiceId },
+      where: { id: invoiceId, userId: req.user.userId },
     });
 
     if (!invoiceExists) {
@@ -129,7 +113,7 @@ const autoSaveInvoice = async (
     }
 
     await prisma.invoice.update({
-      where: { id: invoiceId },
+      where: { id: invoiceId, userId: req.user.userId },
       data: {
         ...invoiceData,
         ...(lineItems && {
@@ -169,6 +153,7 @@ const saveInvoice = async (
     const invoiceExists = await prisma.invoice.findUnique({
       where: {
         id: invoiceId,
+        userId: req.user.userId,
       },
     });
 
@@ -184,6 +169,7 @@ const saveInvoice = async (
     const savedInvoice = await prisma.invoice.update({
       where: {
         id: invoiceId,
+        userId: req.user.userId,
       },
       data: {
         ...invoice,
@@ -217,6 +203,7 @@ const getInvoice = async (
     const invoice = await prisma.invoice.findUnique({
       where: {
         id: invoiceId,
+        userId: req.user.userId
       },
       omit: {
         userId: true,
@@ -249,10 +236,9 @@ const getInvoices = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const user = req.user;
     const invoice = await prisma.invoice.findMany({
       where: {
-        userId: user.userId,
+        userId: req.user.userId,
       },
       omit: {
         userId: true,
@@ -296,6 +282,7 @@ const deleteInvoice = async (
     await prisma.invoice.delete({
       where: {
         id: invoiceId,
+        userId: req.user.userId,
       },
     });
 

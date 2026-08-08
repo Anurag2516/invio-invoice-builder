@@ -5,7 +5,6 @@ import {
   deleteInvoice,
   getInvoice,
   getInvoices,
-  getNextInvoiceNumber,
   saveInvoice,
 } from "../controllers/invoice.controller";
 import { isAuthenticated } from "../middleware/auth.middleware";
@@ -18,6 +17,5 @@ router.put("/saveInvoice/:id", isAuthenticated, saveInvoice);
 router.get("/getInvoice/:id", isAuthenticated, getInvoice);
 router.get("/getInvoices", isAuthenticated, getInvoices);
 router.delete("/deleteInvoice/:id", isAuthenticated, deleteInvoice);
-router.get("/next-number", isAuthenticated, getNextInvoiceNumber);
 
 export default router;

@@ -16,10 +16,6 @@ export const lineItemSchema = z.object({
   ),
 });
 
-export const createDraftSchema = z.object({
-  invoiceNumber: z.string().min(1),
-});
-
 export const invoiceSchema = z.object({
   invoiceNumber: z.string().min(1),
   status: statusSchema,
@@ -56,6 +52,5 @@ export const autoSaveSchema = invoiceSchema.partial().extend({
   lineItems: z.array(lineItemSchema.partial()).optional(),
 });
 
-export type CreateDraftInput = z.infer<typeof createDraftSchema>;
 export type AutoSaveInput = z.infer<typeof autoSaveSchema>;
 export type InvoiceInput = z.infer<typeof invoiceSchema>;
