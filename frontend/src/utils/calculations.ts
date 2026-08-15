@@ -1,4 +1,4 @@
-import type { LineItem, InvoiceTotal } from "../types/invoice";
+import type { LineItemFormData } from "../types/invoice";
 
 export const calculateLineAmount = (
   quantity: number,
@@ -8,10 +8,10 @@ export const calculateLineAmount = (
 };
 
 export const calculateInvoiceTotal = (
-  lineItems: LineItem[],
+  lineItems: LineItemFormData[],
   taxRate: number,
   discountRate: number,
-): InvoiceTotal => {
+) => {
   const subtotal: number = Number(
     lineItems
       .reduce((initialValue, element) => initialValue + element.amount, 0)
