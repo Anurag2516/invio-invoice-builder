@@ -48,7 +48,19 @@ export const invoiceSchema = z.object({
   notes: z.string().optional(),
 });
 
+const optionalNumber = (schema: z.ZodNumber) =>
+  z.preprocess(
+    (val) => (val !== undefined && val !== "" ? Number(val) : undefined),
+    schema.optional(),
+  );
+
 export const autoSaveSchema = invoiceSchema.partial().extend({
+  subtotal: optionalNumber(z.number()),
+  taxRate: optionalNumber(z.number().nonnegative()),
+  taxAmount: optionalNumber(z.number()),
+  discountRate: optionalNumber(z.number().nonnegative()),
+  discountAmount: optionalNumber(z.number()),
+  total: optionalNumber(z.number()),
   lineItems: z.array(lineItemSchema.partial()).optional(),
 });
 

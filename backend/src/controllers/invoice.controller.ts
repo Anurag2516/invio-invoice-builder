@@ -50,6 +50,7 @@ const createDraftInvoice = async (
           userId: req.user!.userId,
           invoiceNumber: nextNumber,
           status: "Draft",
+          issueDate: new Date(),
           senderName: user?.name,
           senderEmail: user?.email,
           senderCompany: user?.companyName,
@@ -59,11 +60,19 @@ const createDraftInvoice = async (
           accountHolderName: user?.accountHolderName,
           accountNumber: user?.accountNumber,
           bankName: user?.bankName,
+          lineItems: {
+            create: {
+              rate: 0,
+              quantity: 1,
+              amount: 0,
+            },
+          },
         },
         select: {
           id: true,
           invoiceNumber: true,
           status: true,
+          issueDate: true,
           senderName: true,
           senderEmail: true,
           senderCompany: true,
@@ -73,6 +82,7 @@ const createDraftInvoice = async (
           bankName: true,
           accountHolderName: true,
           accountNumber: true,
+          lineItems: true,
         },
       });
     });
@@ -203,7 +213,7 @@ const getInvoice = async (
     const invoice = await prisma.invoice.findUnique({
       where: {
         id: invoiceId,
-        userId: req.user.userId
+        userId: req.user.userId,
       },
       omit: {
         userId: true,
