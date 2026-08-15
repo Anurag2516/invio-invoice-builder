@@ -1,14 +1,20 @@
 import { z } from "zod";
 
-export const userSchema = z.object({
+export const userProfileSchema = z.object({
   name: z.string().min(1, "Name is required"),
   companyName: z.string(),
-  address: z.string().min(1, "Address is required"),
-  email: z.email({ message: "Invalid email" }),
-  phone: z.string()
-  .length(10, "Phone must be 10 digits")
-  .or(z.literal("")),
+  address: z.string(),
+  email: z.email(),
+  phone: z.string(),
   website: z.string(),
+  bankName: z.string(),
+  accountHolderName: z.string(),
+  accountNumber: z
+    .string()
+    .min(8, "Account number must be at least 8 digits")
+    .max(17, "Account number cannot exceed 17 digits")
+    .regex(/^\d+$/, "Account number must contain only digits")
+    .or(z.literal("")),
 });
 
 export const lineItemSchema = z.object({
@@ -29,7 +35,25 @@ export const lineItemSchema = z.object({
   amount: z.number(),
 });
 
-export const invoiceTotalSchema = z.object({
+export const invoiceSchema = z.object({
+  invoiceNumber: z.string(),
+  status: z.enum(["Draft", "Paid", "Sent", "Cancelled"]),
+  senderName: z.string().min(1, "Name is required"),
+  senderCompany: z.string(),
+  senderAddress: z.string(),
+  senderEmail: z.email({ message: "Invalid email" }),
+  senderPhone: z.string(),
+  senderWebsite: z.string(),
+  snapshotClientName: z.string().min(1, "Name is required"),
+  snapshotClientCompany: z.string(),
+  snapshotClientAddress: z.string(),
+  snapshotClientEmail: z.email(),
+  snapshotClientPhone: z.string(),
+  snapshotClientWebsite: z.string(),
+  issueDate: z.string(),
+  dueDate: z.string(),
+  lineItems: z.array(lineItemSchema).min(1, "Add at least one line item"),
+  currency: z.enum(["INR", "USD", "EUR"]),
   subtotal: z.number(),
   taxRate: z.preprocess(
     (val) => (val === "" ? undefined : Number(val)),
@@ -46,32 +70,13 @@ export const invoiceTotalSchema = z.object({
   taxAmount: z.number(),
   discountAmount: z.number(),
   total: z.number(),
-});
-
-export const paymentInfo = z.object({
   bankName: z.string(),
-  accountholderName: z.string(),
+  accountHolderName: z.string(),
   accountNumber: z
     .string()
     .min(8, "Account number must be at least 8 digits")
     .max(17, "Account number cannot exceed 17 digits")
     .regex(/^\d+$/, "Account number must contain only digits")
     .or(z.literal("")),
-});
-
-export const invoice = z.object({
-  id: z.string(),
-  invoiceNumber: z.string(),
-  status: z.enum(["Draft", "Paid", "Sent"]),
-  sender: userSchema,
-  client: userSchema,
-  issueDate: z.string(),
-  dueDate: z.string(),
-  lineItems: z.array(lineItemSchema).min(1, "Add at least one line item"),
-  currency: z.enum(["INR", "USD", "EUR"]),
-  invoiceTotal: invoiceTotalSchema,
-  createdAt: z.string(),
-  updatedAt: z.string(),
-  paymentInfo: paymentInfo,
   notes: z.string(),
 });
