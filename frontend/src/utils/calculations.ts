@@ -14,7 +14,11 @@ export const calculateInvoiceTotal = (
 ) => {
   const subtotal: number = Number(
     lineItems
-      .reduce((initialValue, element) => initialValue + element.amount, 0)
+      .reduce(
+        (initialValue, element) =>
+          initialValue + calculateLineAmount(element.quantity, element.rate),
+        0,
+      )
       .toFixed(2),
   );
 
