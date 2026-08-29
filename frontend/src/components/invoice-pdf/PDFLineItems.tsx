@@ -1,10 +1,8 @@
+import type { LineItemFormData } from "@/types/invoice";
 import { View, Text, StyleSheet } from "@react-pdf/renderer";
-import type { Invoice } from "@/types/invoice";
-
-type LineItems = Invoice["lineItems"];
 
 interface PDFLineItemsProps {
-  lineItems: LineItems;
+  lineItems: LineItemFormData[];
   currency: string | undefined;
 }
 

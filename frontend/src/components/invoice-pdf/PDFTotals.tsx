@@ -1,15 +1,9 @@
 import { View, Text, StyleSheet } from "@react-pdf/renderer";
 import type { Invoice } from "@/types/invoice";
 
-type InvoiceTotal = Invoice["invoiceTotal"];
-type PaymentInfo = Invoice["paymentInfo"];
-type Notes = Invoice["notes"];
-
 interface PDFTotalsProps {
-  invoiceTotal: InvoiceTotal;
+  invoice: Invoice;
   currency: string | undefined;
-  notes: Notes;
-  paymentInfo: PaymentInfo;
 }
 
 const styles = StyleSheet.create({
@@ -135,15 +129,13 @@ const styles = StyleSheet.create({
 });
 
 const PDFTotals = ({
-  invoiceTotal,
+  invoice,
   currency,
-  notes,
-  paymentInfo,
 }: PDFTotalsProps) => {
   const hasPaymentInfo =
-    paymentInfo.bankName ||
-    paymentInfo.accountholderName ||
-    paymentInfo.accountNumber;
+    invoice.bankName ||
+    invoice.accountHolderName ||
+    invoice.accountNumber;
 
   return (
     <View style={styles.container}>
@@ -152,27 +144,25 @@ const PDFTotals = ({
           {hasPaymentInfo ? (
             <>
               <Text style={styles.paymentTitle}>Payment Information</Text>
-              {paymentInfo.bankName ? (
+              {invoice.bankName ? (
                 <View style={styles.paymentRow}>
                   <Text style={styles.paymentLabel}>Bank Name: </Text>
-                  <Text style={styles.paymentValue}>
-                    {paymentInfo.bankName}
-                  </Text>
+                  <Text style={styles.paymentValue}>{invoice.bankName}</Text>
                 </View>
               ) : null}
-              {paymentInfo.accountholderName ? (
+              {invoice.accountHolderName ? (
                 <View style={styles.paymentRow}>
                   <Text style={styles.paymentLabel}>Accountholder Name: </Text>
                   <Text style={styles.paymentValue}>
-                    {paymentInfo.accountholderName}
+                    {invoice.accountHolderName}
                   </Text>
                 </View>
               ) : null}
-              {paymentInfo.accountNumber ? (
+              {invoice.accountNumber ? (
                 <View style={styles.paymentRow}>
                   <Text style={styles.paymentLabel}>Account Number: </Text>
                   <Text style={styles.paymentValueMono}>
-                    {paymentInfo.accountNumber}
+                    {invoice.accountNumber}
                   </Text>
                 </View>
               ) : null}
@@ -185,43 +175,41 @@ const PDFTotals = ({
             <Text style={styles.totalLabel}>Subtotal</Text>
             <Text
               style={styles.totalValue}
-            >{`${currency}${invoiceTotal.subtotal}`}</Text>
+            >{`${currency}${invoice.subtotal}`}</Text>
           </View>
 
           <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>
-              Tax{invoiceTotal.taxRate > 0 ? ` (${invoiceTotal.taxRate}%)` : ""}
+              Tax{invoice.taxRate > 0 ? ` (${invoice.taxRate}%)` : ""}
             </Text>
             <Text
               style={styles.totalValue}
-            >{`${currency}${invoiceTotal.taxAmount}`}</Text>
+            >{`${currency}${invoice.taxAmount}`}</Text>
           </View>
 
           <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>
               Discount
-              {invoiceTotal.discountRate > 0
-                ? ` (${invoiceTotal.discountRate}%)`
-                : ""}
+              {invoice.discountRate > 0 ? ` (${invoice.discountRate}%)` : ""}
             </Text>
             <Text
               style={styles.totalValue}
-            >{`${currency}${invoiceTotal.discountAmount}`}</Text>
+            >{`${currency}${invoice.discountAmount}`}</Text>
           </View>
 
           <View style={styles.totalDueBox}>
             <Text style={styles.totalDueLabel}>Total Due</Text>
             <Text
               style={styles.totalDueValue}
-            >{`${currency}${invoiceTotal.total}`}</Text>
+            >{`${currency}${invoice.total}`}</Text>
           </View>
         </View>
       </View>
 
-      {notes ? (
+      {invoice.notes ? (
         <View style={styles.notesCol}>
           <Text style={styles.notesLabel}>Notes</Text>
-          <Text style={styles.notesText}>{notes}</Text>
+          <Text style={styles.notesText}>{invoice.notes}</Text>
         </View>
       ) : null}
     </View>

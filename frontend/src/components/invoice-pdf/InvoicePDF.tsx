@@ -1,17 +1,13 @@
 import "./PDFFonts";
 import { Document, Page, StyleSheet } from "@react-pdf/renderer";
 import PDFHeader from "./PDFHeader";
-import { useInvoiceStore } from "@/store/invoiceStore";
 import PDFClientSection from "./PDFClientSection";
 import PDFLineItems from "./PDFLineItems";
 import PDFTotals from "./PDFTotals";
-
-type ActiveInvoice = ReturnType<
-  typeof useInvoiceStore.getState
->["activeInvoice"];
+import type { InvoiceResponse } from "@/types/invoice";
 
 interface InvoicePDFProp {
-  activeInvoice: ActiveInvoice;
+  invoice: InvoiceResponse;
   currency: string | undefined;
 }
 
@@ -22,26 +18,18 @@ const styles = StyleSheet.create({
   },
 });
 
-const InvoicePDF = ({ activeInvoice, currency }: InvoicePDFProp) => {
+const InvoicePDF = ({ invoice, currency }: InvoicePDFProp) => {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
         <PDFHeader
-          invoiceNumber={activeInvoice.invoiceNumber}
-          issueDate={activeInvoice.issueDate}
-          dueDate={activeInvoice.dueDate}
+          invoiceNumber={invoice.invoiceNumber}
+          issueDate={invoice.issueDate}
+          dueDate={invoice.dueDate}
         />
-        <PDFClientSection
-          sender={activeInvoice.sender}
-          client={activeInvoice.client}
-        />
-        <PDFLineItems lineItems={activeInvoice.lineItems} currency={currency} />
-        <PDFTotals
-          invoiceTotal={activeInvoice.invoiceTotal}
-          currency={currency}
-          paymentInfo={activeInvoice.paymentInfo}
-          notes={activeInvoice.notes}
-        />
+        <PDFClientSection invoice={invoice} />
+        <PDFLineItems lineItems={invoice.lineItems} currency={currency} />
+        <PDFTotals invoice={invoice} currency={currency} />
       </Page>
     </Document>
   );

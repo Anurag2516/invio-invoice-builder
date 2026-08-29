@@ -1,12 +1,16 @@
 import { View, Text, StyleSheet } from "@react-pdf/renderer";
-import type { Invoice } from "@/types/invoice";
-
-type Sender = Invoice["sender"];
-type Client = Invoice["client"];
+import type { InvoiceResponse } from "@/types/invoice";
 
 interface PDFClientSectionProps {
-  sender: Sender;
-  client: Client;
+ invoice: InvoiceResponse
+}
+
+interface NormalizedParty {
+  name?: string;
+  companyName?: string;
+  address?: string;
+  email?: string;
+  phone?: string;
 }
 
 const styles = StyleSheet.create({
@@ -19,11 +23,14 @@ const styles = StyleSheet.create({
     paddingLeft: 50,
     paddingRight: 50,
   },
-
   col: {
     display: "flex",
     flexDirection: "column",
     color: "#71685a",
+    width: "45%",
+  },
+  colRight: {
+    alignItems: "flex-end",
   },
   label: {
     fontSize: 10,
@@ -52,31 +59,47 @@ const styles = StyleSheet.create({
 });
 
 const UserBlock = ({
-  user,
+  party,
   label,
+  isRight = false,
 }: {
-  user: Sender | Client;
+  party: NormalizedParty;
   label: string;
+  isRight?: boolean;
 }) => (
-  <View style={styles.col}>
+  <View style={[styles.col, isRight ? styles.colRight : {}]}>
     <Text style={styles.label}>{label}</Text>
-    <Text style={styles.name}>{user.name}</Text>
-    {user.companyName ? (
-      <Text style={styles.detail}>{user.companyName}</Text>
-    ) : null}
-    {user.address ? <Text style={styles.detail}>{user.address}</Text> : null}
-    {user.email ? <Text style={styles.detail}>{user.email}</Text> : null}
-    {user.phone ? <Text style={styles.phone}>{user.phone}</Text> : null}
+    <Text style={styles.name}>{party.name}</Text>
+    {party.companyName && <Text style={styles.detail}>{party.companyName}</Text>}
+    {party.address && <Text style={styles.detail}>{party.address}</Text>}
+    {party.email && <Text style={styles.detail}>{party.email}</Text>}
+    {party.phone && <Text style={styles.phone}>{party.phone}</Text>}
   </View>
-);
+)
 
-const PDFClientSection = ({ sender, client }: PDFClientSectionProps) => {
+const PDFClientSection = ({ invoice }: PDFClientSectionProps) => {
+  const normalizedSender: NormalizedParty = {
+    name: invoice.senderName,
+    companyName: invoice.senderCompany,
+    address: invoice.senderAddress,
+    email: invoice.senderEmail,
+    phone: invoice.senderPhone,
+  }
+
+  const normalizedClient: NormalizedParty = {
+    name: invoice.snapshotClientName,
+    companyName: invoice.snapshotClientCompany,
+    address: invoice.snapshotClientAddress,
+    email: invoice.snapshotClientEmail,
+    phone: invoice.snapshotClientPhone,
+  }
+
   return (
     <View style={styles.container}>
-      <UserBlock user={sender} label="Bill From:" />
-      <UserBlock user={client} label="Bill To:" />
+      <UserBlock party={normalizedSender} label="Bill From:" />
+      <UserBlock party={normalizedClient} label="Bill To:" isRight />
     </View>
-  );
-};
+  )
+}
 
-export default PDFClientSection;
+export default PDFClientSection
