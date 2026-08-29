@@ -48,20 +48,48 @@ export const invoiceSchema = z.object({
   notes: z.string().optional(),
 });
 
-const optionalNumber = (schema: z.ZodNumber) =>
-  z.preprocess(
-    (val) => (val !== undefined && val !== "" ? Number(val) : undefined),
-    schema.optional(),
-  );
+const nullableStr = z.string().nullable().optional();
+const nullableNum = z.number().nullable().optional();
 
-export const autoSaveSchema = invoiceSchema.partial().extend({
-  subtotal: optionalNumber(z.number()),
-  taxRate: optionalNumber(z.number().nonnegative()),
-  taxAmount: optionalNumber(z.number()),
-  discountRate: optionalNumber(z.number().nonnegative()),
-  discountAmount: optionalNumber(z.number()),
-  total: optionalNumber(z.number()),
-  lineItems: z.array(lineItemSchema.partial()).optional(),
+export const autoSaveSchema = z.object({
+  invoiceNumber: z.string().optional(),
+  status: statusSchema.optional(),
+  clientId: z.string().nullable().optional(),
+  issueDate: z.string().nullable().optional(),
+  dueDate: z.string().nullable().optional(),
+  currency: currencySchema.optional(),
+  subtotal: nullableNum,
+  taxRate: nullableNum,
+  taxAmount: nullableNum,
+  discountRate: nullableNum,
+  discountAmount: nullableNum,
+  total: nullableNum,
+  bankName: nullableStr,
+  accountHolderName: nullableStr,
+  accountNumber: nullableStr,
+  notes: nullableStr,
+  senderName: nullableStr,
+  senderEmail: nullableStr,
+  senderCompany: nullableStr,
+  senderAddress: nullableStr,
+  senderPhone: nullableStr,
+  senderWebsite: nullableStr,
+  snapshotClientName: nullableStr,
+  snapshotClientEmail: nullableStr,
+  snapshotClientCompany: nullableStr,
+  snapshotClientAddress: nullableStr,
+  snapshotClientPhone: nullableStr,
+  snapshotClientWebsite: nullableStr,
+  lineItems: z
+    .array(
+      z.object({
+        description: z.string().nullable().optional(),
+        quantity: z.number().nonnegative().optional(),
+        rate: z.number().nonnegative().optional(),
+        amount: z.number().nonnegative().optional(),
+      }),
+    )
+    .optional(),
 });
 
 export type AutoSaveInput = z.infer<typeof autoSaveSchema>;
