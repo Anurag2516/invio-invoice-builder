@@ -1,7 +1,8 @@
 import { Router } from "express";
 import { isAuthenticated } from "../middleware/auth.middleware";
 import {
-  addClient,
+  createClient,
+  updateClient,
   getClient,
   getClients,
   deleteClient,
@@ -9,7 +10,8 @@ import {
 
 const router = Router()
 
-router.post("/addClient", isAuthenticated, addClient)
+router.post("/createClient", isAuthenticated, createClient)
+router.put("/updateClient/:id", isAuthenticated, updateClient);
 router.get("/client/:id", isAuthenticated, getClient);
 router.get("/getClients", isAuthenticated, getClients);
 router.delete("/client/:id", isAuthenticated, deleteClient);

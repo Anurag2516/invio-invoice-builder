@@ -2,9 +2,9 @@ import { z } from "zod";
 
 export const clientSchema = z.object({
   name: z.string(),
-  email: z.email(),
+  email: z.email().optional(),
   companyName: z.string().optional(),
-  address: z.string(),
+  address: z.string().optional(),
   phone: z.string().optional(),
   website: z.url().optional(),
 });

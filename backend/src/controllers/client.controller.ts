@@ -1,9 +1,14 @@
 import { NextFunction, Request, Response } from "express";
-import { ClientInput, clientSchema } from "../schemas/client.schema";
+import {
+  ClientInput,
+  clientSchema,
+  UpdateClientInput,
+  updateClientSchema,
+} from "../schemas/client.schema";
 import { prisma } from "../config/db";
 import { Params } from "../types/params";
 
-const addClient = async (
+const createClient = async (
   req: Request<Params>,
   res: Response,
   next: NextFunction,
@@ -21,19 +26,54 @@ const addClient = async (
       return;
     }
 
-    const client: ClientInput = parsedClient.data;
+    const clientData: ClientInput = parsedClient.data;
 
-    const { email, ...updatableFields } = client;
-
-    const addClient = await prisma.client.upsert({
-      where: {
-        userId_email: { userId: req.user.userId, email: client.email },
+    const addClient = await prisma.client.create({
+      data: {
+        userId: req.user.userId,
+        ...clientData,
       },
-      update: { ...updatableFields },
-      create: { userId: req.user.userId, ...client },
     });
 
     res.status(201).json(addClient);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const updateClient = async (
+  req: Request<Params>,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const parsedClient = updateClientSchema.safeParse(req.body);
+
+    if (!parsedClient.success) {
+      res.status(400).json({
+        errors: parsedClient.error.issues.map((i) => ({
+          field: i.path.join("."),
+          message: i.message,
+        })),
+      });
+      return;
+    }
+
+    const clientData: UpdateClientInput = parsedClient.data;
+
+    const clientId = req.params.id;
+
+    const updatedClient = await prisma.client.update({
+      where: {
+        userId: req.user.userId,
+        id: clientId,
+      },
+      data: {
+        ...clientData,
+      },
+    });
+
+    res.status(201).json(updatedClient);
   } catch (error) {
     next(error);
   }
@@ -50,7 +90,7 @@ const getClient = async (
     const client = await prisma.client.findUnique({
       where: {
         id: clientId,
-        userId: req.user.userId
+        userId: req.user.userId,
       },
       omit: {
         userId: true,
@@ -76,25 +116,24 @@ const getClients = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
+    const search = req.query.search as string | undefined;
+
     const clients = await prisma.client.findMany({
       where: {
-        userId: req.user.userId
+        userId: req.user.userId,
+        ...(search && {
+          OR: [
+            { name: { contains: search, mode: "insensitive" } },
+            { email: { contains: search, mode: "insensitive" } },
+          ],
+        }),
       },
-      omit: {
-        userId: true,
-      },
+      omit: { userId: true },
     });
-
-    if (!clients) {
-      res.status(404).json({
-        message: "Clients not found",
-      });
-      return;
-    }
 
     res.status(200).json(clients);
   } catch (error) {
-    next(error)
+    next(error);
   }
 };
 
@@ -109,7 +148,7 @@ const deleteClient = async (
     const clientExists = await prisma.client.findUnique({
       where: {
         id: clientId,
-        userId: req.user.userId
+        userId: req.user.userId,
       },
     });
 
@@ -132,4 +171,4 @@ const deleteClient = async (
   }
 };
 
-export { addClient, getClient, getClients, deleteClient };
+export { createClient, updateClient, getClient, getClients, deleteClient };
