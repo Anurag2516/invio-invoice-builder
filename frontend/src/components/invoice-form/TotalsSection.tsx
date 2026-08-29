@@ -1,17 +1,24 @@
-import { useInvoiceStore } from "@/store/invoiceStore";
-import type { InvoiceFormProps } from "../../types/invoice";
+import type { InvoiceFormValues } from "../../types/invoice";
 import Input from "../ui/Input";
 import { useCurrencySign } from "@/hooks/useCurrencySign";
 import SectionHeader from "../ui/SectionHeader";
 import { percentageFilter } from "@/utils/inputFilters";
-import { Controller } from "react-hook-form";
+import { Controller, useFormContext, useWatch } from "react-hook-form";
+import { calculateInvoiceTotal } from "@/utils/calculations";
 
-const TotalsSection = ({ control, errors }: InvoiceFormProps) => {
-  const invoiceTotal = useInvoiceStore(
-    (state) => state.activeInvoice.invoiceTotal,
-  );
+const TotalsSection = () => {
+  const {
+    control,
+    formState: { errors },
+  } = useFormContext<InvoiceFormValues>();
 
-  const currency = useCurrencySign();
+  const [lineItems, taxRate, discountRate, currency] = useWatch({
+    name: ["lineItems", "taxRate", "discountRate", "currency"],
+  });
+
+  const { subtotal, taxAmount, discountAmount, total } = calculateInvoiceTotal(lineItems, taxRate, discountRate)
+
+  const currencySign = useCurrencySign(currency);
 
   return (
     <div className="text-stone mt-8">
@@ -23,12 +30,12 @@ const TotalsSection = ({ control, errors }: InvoiceFormProps) => {
       <div className="flex items-center gap-8 mt-4 w-full">
         <div className="flex flex-col items-center justify-between w-full">
           <Controller
-            name="invoiceTotal.taxRate"
+            name="taxRate"
             control={control}
             render={({ field }) => (
               <Input
                 {...field}
-                value={field.value as string}
+                value={field.value as number}
                 label="Tax Rate (%)"
                 type="text"
                 inputMode="decimal"
@@ -36,19 +43,19 @@ const TotalsSection = ({ control, errors }: InvoiceFormProps) => {
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   if (percentageFilter(e)) field.onChange(e);
                 }}
-                error={errors?.invoiceTotal?.taxRate?.message}
+                error={errors.taxRate?.message}
               />
             )}
           />
         </div>
         <div className="flex flex-col items-center justify-between gap-1 w-full">
           <Controller
-            name="invoiceTotal.discountRate"
+            name="discountRate"
             control={control}
             render={({ field }) => (
               <Input
                 {...field}
-                value={field.value as string}
+                value={field.value as number}
                 label="Discount (%)"
                 type="text"
                 inputMode="decimal"
@@ -56,7 +63,7 @@ const TotalsSection = ({ control, errors }: InvoiceFormProps) => {
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   if (percentageFilter(e)) field.onChange(e);
                 }}
-                error={errors.invoiceTotal?.discountRate?.message}
+                error={errors.discountRate?.message}
               />
             )}
           />
@@ -70,8 +77,8 @@ const TotalsSection = ({ control, errors }: InvoiceFormProps) => {
               Subtotal
             </p>
             <span className="text-sm text-foreground">
-              {currency}
-              {invoiceTotal.subtotal}
+              {currencySign}
+              {subtotal}
             </span>
           </div>
 
@@ -80,8 +87,8 @@ const TotalsSection = ({ control, errors }: InvoiceFormProps) => {
               Discount
             </p>
             <span className="text-sm text-foreground">
-              {currency}
-              {invoiceTotal.discountAmount}
+              {currencySign}
+              {discountAmount}
             </span>
           </div>
 
@@ -90,8 +97,8 @@ const TotalsSection = ({ control, errors }: InvoiceFormProps) => {
               Tax
             </p>
             <span className="text-sm text-foreground">
-              {currency}
-              {invoiceTotal.taxAmount}
+              {currencySign}
+              {taxAmount}
             </span>
           </div>
 
@@ -100,8 +107,8 @@ const TotalsSection = ({ control, errors }: InvoiceFormProps) => {
               Total due
             </p>
             <span className="text-foreground font-semibold mt-2">
-              {currency}
-              {invoiceTotal.total}
+              {currencySign}
+              {total}
             </span>
           </div>
         </div>

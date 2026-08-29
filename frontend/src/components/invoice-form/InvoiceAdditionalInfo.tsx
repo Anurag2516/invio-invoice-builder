@@ -1,8 +1,13 @@
-import type { InvoiceFormProps } from "@/types/invoice";
+import type { InvoiceFormValues } from "@/types/invoice";
 import SectionHeader from "../ui/SectionHeader";
 import Input from "../ui/Input";
+import { useFormContext } from "react-hook-form";
 
-const InvoiceAdditionalInfo = ({ register, errors }: InvoiceFormProps) => {
+const InvoiceAdditionalInfo = () => {
+  const {
+    register,
+    formState: { errors },
+  } = useFormContext<InvoiceFormValues>();
   return (
     <div className="flex flex-col gap-6 mt-8 pb-8">
       <div className="flex flex-col gap-5 w-full">
@@ -11,22 +16,22 @@ const InvoiceAdditionalInfo = ({ register, errors }: InvoiceFormProps) => {
           <div className="flex-1 h-[1.5px] bg-stone/50" />
         </div>
         <Input
-          {...register("paymentInfo.bankName")}
+          {...register("bankName")}
           label="Bank Name"
           placeholder="Enter bank name"
-          error={errors.paymentInfo?.bankName?.message}
+          error={errors.bankName?.message}
         />
         <Input
-          {...register("paymentInfo.accountholderName")}
+          {...register("accountHolderName")}
           label="Accountholder Name"
           placeholder="John Doe"
-          error={errors.paymentInfo?.accountholderName?.message}
+          error={errors.accountHolderName?.message}
         />
         <Input
-          {...register("paymentInfo.accountNumber")}
+          {...register("accountNumber")}
           label="Account Number"
           placeholder="Enter account number"
-          error={errors.paymentInfo?.accountNumber?.message}
+          error={errors.accountNumber?.message}
         />
       </div>
       <div className="flex flex-col gap-2 w-full">

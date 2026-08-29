@@ -1,4 +1,4 @@
-import type { InvoiceFormProps } from "../../types/invoice";
+import type { InvoiceFormValues } from "../../types/invoice";
 import Input from "../ui/Input";
 import { statusOptions } from "../../constants/statusOptions";
 import { currencyOptions } from "../../constants/currencies";
@@ -12,11 +12,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/Select";
-import { Controller } from "react-hook-form";
+import { Controller, useFormContext } from "react-hook-form";
 import DatePicker from "../ui/DatePicker";
 import { format } from "date-fns";
 
-const InvoiceMeta = ({ register, control, errors }: InvoiceFormProps) => {
+const InvoiceMeta = () => {
+  const {
+    register,
+    control,
+    formState: { errors },
+  } = useFormContext<InvoiceFormValues>();
   return (
     <div className="flex flex-col gap-6 justify-between items-start pt-8 border-b border-stone/40">
       <div className="flex items-center gap-3 w-full">
@@ -37,7 +42,7 @@ const InvoiceMeta = ({ register, control, errors }: InvoiceFormProps) => {
           control={control}
           render={({ field }) => (
             <div className="flex flex-col gap-1.5 w-auto">
-              <label className="text-sm font-semibold uppercase tracking-wide text-stone">
+              <label className="text-sm font-semibold uppercase tracking-wider text-stone">
                 Status
               </label>
               <Select onValueChange={field.onChange} value={field.value}>
@@ -63,7 +68,7 @@ const InvoiceMeta = ({ register, control, errors }: InvoiceFormProps) => {
           control={control}
           render={({ field }) => (
             <div className="flex flex-col gap-1.5 w-auto">
-              <label className="text-sm font-semibold uppercase tracking-wide text-stone">
+              <label className="text-sm font-semibold uppercase tracking-wider text-stone">
                 Currency
               </label>
               <Select onValueChange={field.onChange} value={field.value}>

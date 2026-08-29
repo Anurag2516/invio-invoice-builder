@@ -1,23 +1,43 @@
-import { Controller, useFieldArray } from "react-hook-form";
-import type { InvoiceFormProps } from "../../types/invoice";
+import {
+  Controller,
+  useFieldArray,
+  useFormContext,
+  useWatch,
+} from "react-hook-form";
+import type { InvoiceFormValues, LineItemFormData } from "../../types/invoice";
 import Input from "../ui/Input";
-import { defaultLineItem } from "@/utils/defaults";
-import { useInvoiceStore } from "@/store/invoiceStore";
 import { Plus, X } from "lucide-react";
 import { useCurrencySign } from "@/hooks/useCurrencySign";
 import SectionHeader from "../ui/SectionHeader";
 import { positiveNumberFilter } from "@/utils/inputFilters";
+import { Button } from "../ui/Button";
+import { calculateLineAmount } from "@/utils/calculations";
 
-const LineItemsTable = ({ register, control, errors }: InvoiceFormProps) => {
+const LineItemsTable = () => {
+  const {
+    register,
+    control,
+    formState: { errors },
+  } = useFormContext<InvoiceFormValues>();
+
   const { fields, append, remove } = useFieldArray({
     name: "lineItems",
     control,
   });
 
-  const lineItems = useInvoiceStore((state) => state.activeInvoice.lineItems);
-  const removeLineItem = useInvoiceStore((state) => state.removeLineItem);
+  const [lineItems, currency] = useWatch({
+    name: ["lineItems", "currency"],
+  });
 
-  const currency = useCurrencySign();
+  const currencySign = useCurrencySign(currency);
+
+  const defaultLineItem = (): LineItemFormData => ({
+    id: `temp_${crypto.randomUUID()}`,
+    description: "",
+    quantity: 1,
+    rate: 0,
+    amount: 0,
+  });
 
   return (
     <div className="w-full pt-8">
@@ -36,17 +56,16 @@ const LineItemsTable = ({ register, control, errors }: InvoiceFormProps) => {
               <span className="text-xs font-semibold uppercase tracking-wide text-stone">
                 Item {index + 1}
               </span>
-              <button
+              <Button
                 type="button"
+                variant="destructive"
                 onClick={() => {
                   remove(index);
-                  removeLineItem(field.id);
                 }}
                 disabled={fields.length === 1}
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-stone border border-stone hover:bg-red-100 hover:cursor-pointer transition-all duration-300 disabled:opacity-30"
               >
                 <X size={16} />
-              </button>
+              </Button>
             </div>
             <Input
               {...register(`lineItems.${index}.description`)}
@@ -61,7 +80,7 @@ const LineItemsTable = ({ register, control, errors }: InvoiceFormProps) => {
                 render={({ field }) => (
                   <Input
                     {...field}
-                    value={field.value as string}
+                    value={field.value as number}
                     type="text"
                     inputMode="decimal"
                     placeholder="0.00"
@@ -79,7 +98,7 @@ const LineItemsTable = ({ register, control, errors }: InvoiceFormProps) => {
                 render={({ field }) => (
                   <Input
                     {...field}
-                    value={field.value as string}
+                    value={field.value as number}
                     type="text"
                     inputMode="decimal"
                     placeholder="1"
@@ -95,9 +114,12 @@ const LineItemsTable = ({ register, control, errors }: InvoiceFormProps) => {
                 <span className="text-sm font-semibold uppercase tracking-wide text-stone">
                   Amount
                 </span>
-                <span className="text-base font-medium text-foreground  pt-2">
-                  {currency}
-                  {(lineItems[index]?.amount ?? 0).toFixed(2)}
+                <span className="text-base font-medium text-foreground pt-2">
+                  {currencySign}
+                  {calculateLineAmount(
+                    lineItems[index]?.quantity ?? 0,
+                    lineItems[index]?.rate ?? 0,
+                  )}
                 </span>
               </div>
             </div>
@@ -109,16 +131,16 @@ const LineItemsTable = ({ register, control, errors }: InvoiceFormProps) => {
         <thead>
           <tr>
             <th className="w-8" />
-            <th className="py-2 text-left text-sm font-semibold uppercase tracking-wide text-stone">
+            <th className="py-2 text-left text-sm font-semibold uppercase tracking-wider text-stone">
               Description
             </th>
-            <th className="py-2 text-left text-sm font-semibold uppercase tracking-wide text-stone w-24">
+            <th className="py-2 text-left text-sm font-semibold uppercase tracking-wider text-stone w-24">
               Rate
             </th>
-            <th className="py-2 text-left text-sm font-semibold uppercase tracking-wide text-stone w-24">
+            <th className="py-2 text-left text-sm font-semibold uppercase tracking-wider text-stone w-24">
               Qty
             </th>
-            <th className="py-2 text-right text-sm font-semibold uppercase tracking-wide text-stone w-20">
+            <th className="py-2 text-right text-sm font-semibold uppercase tracking-wider text-stone w-20">
               Amount
             </th>
           </tr>
@@ -128,17 +150,16 @@ const LineItemsTable = ({ register, control, errors }: InvoiceFormProps) => {
           {fields.map((field, index) => (
             <tr key={field.id} className="align-middle">
               <td className="pr-4">
-                <button
+                <Button
                   type="button"
+                  variant="destructive"
                   onClick={() => {
                     remove(index);
-                    removeLineItem(field.id);
                   }}
                   disabled={fields.length === 1}
-                  className="flex h-10.5 w-10.5 items-center justify-center rounded-lg text-stone border border-stone hover:bg-red-100 hover-border-200 hover:cursor-pointer transition-all duration-300 disabled:opacity-30"
                 >
                   <X size={18} />
-                </button>
+                </Button>
               </td>
 
               <td className="py-2 pr-3">
@@ -156,7 +177,7 @@ const LineItemsTable = ({ register, control, errors }: InvoiceFormProps) => {
                   render={({ field }) => (
                     <Input
                       {...field}
-                      value={field.value as string}
+                      value={field.value as number}
                       type="text"
                       inputMode="decimal"
                       placeholder="0.00"
@@ -176,7 +197,7 @@ const LineItemsTable = ({ register, control, errors }: InvoiceFormProps) => {
                   render={({ field }) => (
                     <Input
                       {...field}
-                      value={field.value as string}
+                      value={field.value as number}
                       type="text"
                       inputMode="decimal"
                       placeholder="1"
@@ -190,8 +211,11 @@ const LineItemsTable = ({ register, control, errors }: InvoiceFormProps) => {
               </td>
 
               <td className="py-2 text-right text-base font-medium text-foreground ">
-                {currency}
-                {(lineItems[index]?.amount ?? 0).toFixed(2)}
+                {currencySign}
+                {calculateLineAmount(
+                  lineItems[index]?.quantity ?? 0,
+                  lineItems[index]?.rate ?? 0,
+                )}
               </td>
 
               <td />
