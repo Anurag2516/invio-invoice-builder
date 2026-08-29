@@ -110,7 +110,7 @@ const autoSaveInvoice = async (
       });
       return;
     }
-    const { lineItems, ...invoiceData }: AutoSaveInput = parsed.data;
+    const { lineItems, clientId, ...invoiceData }: AutoSaveInput = parsed.data;
     const invoiceId = req.params.id;
 
     const invoiceExists = await prisma.invoice.findUnique({
@@ -126,6 +126,12 @@ const autoSaveInvoice = async (
       where: { id: invoiceId, userId: req.user.userId },
       data: {
         ...invoiceData,
+        ...(clientId !== undefined && {
+          client:
+            clientId === null
+              ? { disconnect: true }
+              : { connect: { id: clientId } },
+        }),
         ...(lineItems && {
           lineItems: {
             deleteMany: {},
