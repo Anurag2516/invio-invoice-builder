@@ -1,67 +1,53 @@
-import type { useInvoiceStore } from "@/store/invoiceStore";
 import PreviewAdditionalInfo from "./PreviewAdditionalInfo";
-
-type InvoiceTotal = ReturnType<
-  typeof useInvoiceStore.getState
->["activeInvoice"]["invoiceTotal"];
-
-type Notes = ReturnType<
-  typeof useInvoiceStore.getState
->["activeInvoice"]["notes"];
-
-type PaymentInfo = ReturnType<
-  typeof useInvoiceStore.getState
->["activeInvoice"]["paymentInfo"];
+import type { InvoiceResponse } from "@/types/invoice";
 
 interface PreviewTotalsProps {
-  invoiceTotal: InvoiceTotal;
+  invoice: InvoiceResponse
   currency: string | undefined;
-  notes: Notes;
-  paymentInfo: PaymentInfo;
 }
-const PreviewTotals = ({
-  invoiceTotal,
-  currency,
-  notes,
-  paymentInfo,
-}: PreviewTotalsProps) => {
+const PreviewTotals = ({ invoice, currency }: PreviewTotalsProps) => {
+  
   return (
     <div className="flex flex-col gap-4 pb-6 sm:pb-10 px-3 xs:px-4 sm:px-8">
       <div className="flex justify-between items-start gap-3 sm:gap-6">
-        <PreviewAdditionalInfo paymentInfo={paymentInfo} />
+        <PreviewAdditionalInfo
+          accountHolderName={invoice.accountHolderName}
+          accountNumber={invoice.accountNumber}
+          bankName={invoice.bankName}
+        />
 
         <div className="min-w-32 sm:min-w-54 text-[10px] sm:text-sm text-[#71685a]">
           <div className="flex justify-between items-center">
             <p>Subtotal</p>
             <span className="font-normal text-[#0f0e0c] ">
               {currency}
-              {invoiceTotal.subtotal}
+              {invoice.subtotal}
             </span>
           </div>
 
           <div className="flex justify-between items-center py-1 sm:py-1.5">
             <p>
               Tax{" "}
-              {invoiceTotal.taxRate > 0 && (
-                <span className=" text-xs">({invoiceTotal.taxRate}%)</span>
+              {invoice.taxRate > 0 && (
+                <span className=" text-xs">({invoice.taxRate}%)</span>
               )}
             </p>
             <span className="font-normal text-[#0f0e0c] ">
               {currency}
-              {invoiceTotal.taxAmount}
+              {invoice.taxAmount}
             </span>
           </div>
 
           <div className="flex justify-between items-center">
             <p>
               Discount{" "}
-              {invoiceTotal.discountRate > 0 && (
-                <span className=" text-xs">({invoiceTotal.discountRate}%)</span>
+              {invoice.discountRate > 0 && (
+                <span className=" text-xs">({invoice.discountRate}%)</span>
               )}
             </p>
             <span className="font-normal text-[#0f0e0c] ">
               {currency}
-              {invoiceTotal.discountAmount}
+              {invoice.discountAmount}
             </span>
           </div>
 
@@ -71,20 +57,20 @@ const PreviewTotals = ({
             </h1>
             <span className="text-[11px] sm:text-lg text-[#fffefb] tracking-wide">
               {currency}
-              {invoiceTotal.total}
+              {invoice.total}
             </span>
           </div>
         </div>
       </div>
 
       <div className="flex-1">
-        {notes && (
+        {invoice.notes && (
           <>
             <p className="text-[10px] sm:text-sm font-bold uppercase tracking-wider text-[#71685a] mb-1">
               Notes
             </p>
             <p className="text-[9px] sm:text-xs text-[#0f0e0c] leading-relaxed">
-              {notes}
+              {invoice.notes}
             </p>
           </>
         )}

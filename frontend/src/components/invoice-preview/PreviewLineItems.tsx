@@ -1,11 +1,7 @@
-import type { useInvoiceStore } from "@/store/invoiceStore";
-
-type LineItems = ReturnType<
-  typeof useInvoiceStore.getState
->["activeInvoice"]["lineItems"];
+import type { LineItemResponse } from "@/types/invoice";
 
 interface PreviewLineItemsProps {
-  lineItems: LineItems;
+  lineItems: LineItemResponse[];
   currency: string | undefined;
 }
 
@@ -30,9 +26,9 @@ const PreviewLineItems = ({ lineItems, currency }: PreviewLineItemsProps) => {
           </tr>
         </thead>
         <tbody>
-          {lineItems.map((item) => (
+          {lineItems?.map((item, index) => (
             <tr
-              key={item.id}
+              key={index}
               className="border-b border-[#f0ebe3] text-[11px] sm:text-sm text-[#0f0e0c]"
             >
               <td className="py-2 sm:py-3 px-1.5 sm:px-3">

@@ -1,29 +1,16 @@
-import type { useInvoiceStore } from "@/store/invoiceStore";
+import type { InvoiceResponse } from "@/types/invoice";
 import { format, isValid, parseISO } from "date-fns";
 
-type InvoiceNumber = ReturnType<
-  typeof useInvoiceStore.getState
->["activeInvoice"]["invoiceNumber"];
-
-type IssueDate = ReturnType<
-  typeof useInvoiceStore.getState
->["activeInvoice"]["issueDate"];
-
-type dueDate = ReturnType<
-  typeof useInvoiceStore.getState
->["activeInvoice"]["dueDate"];
-
-interface PreviewHeaderProp {
-  invoiceNumber: InvoiceNumber;
-  issueDate: IssueDate;
-  dueDate: dueDate;
-}
+type PreviewHeaderProps = Pick<
+  InvoiceResponse,
+  "invoiceNumber" | "issueDate" | "dueDate"
+>;
 
 const PreviewHeader = ({
   invoiceNumber,
   issueDate,
   dueDate,
-}: PreviewHeaderProp) => {
+}: PreviewHeaderProps) => {
   return (
     <div className="flex justify-between items-start border-b-2 border-stone-400 bg-[#0f0e0c] pb-4 sm:pb-6 mb-4 sm:mb-6 px-3 xs:px-4 sm:px-8 py-6 sm:py-14 gap-5">
       <h1 className="text-[26px] sm:text-[40px] font-normal text-[#fffefb] italic leading-none">
