@@ -1,22 +1,5 @@
 import { z } from "zod";
 
-export const userProfileSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  companyName: z.string(),
-  address: z.string(),
-  email: z.email(),
-  phone: z.string(),
-  website: z.string(),
-  bankName: z.string(),
-  accountHolderName: z.string(),
-  accountNumber: z
-    .string()
-    .min(8, "Account number must be at least 8 digits")
-    .max(17, "Account number cannot exceed 17 digits")
-    .regex(/^\d+$/, "Account number must contain only digits")
-    .or(z.literal("")),
-});
-
 export const lineItemSchema = z.object({
   id: z.string(),
   description: z.string().min(1, "Description is required"),
@@ -36,7 +19,7 @@ export const lineItemSchema = z.object({
 });
 
 export const invoiceSchema = z.object({
-  invoiceNumber: z.string(),
+  invoiceNumber: z.string().min(1, "Invoice number is required"),
   status: z.enum(["Draft", "Paid", "Sent", "Cancelled"]),
   senderName: z.string().min(1, "Name is required"),
   senderCompany: z.string(),
@@ -44,6 +27,7 @@ export const invoiceSchema = z.object({
   senderEmail: z.email({ message: "Invalid email" }),
   senderPhone: z.string(),
   senderWebsite: z.string(),
+  clientId: z.string().nullable().optional(),
   snapshotClientName: z.string().min(1, "Name is required"),
   snapshotClientCompany: z.string(),
   snapshotClientAddress: z.string(),
@@ -72,11 +56,13 @@ export const invoiceSchema = z.object({
   total: z.number(),
   bankName: z.string(),
   accountHolderName: z.string(),
-  accountNumber: z
-    .string()
-    .min(8, "Account number must be at least 8 digits")
-    .max(17, "Account number cannot exceed 17 digits")
-    .regex(/^\d+$/, "Account number must contain only digits")
-    .or(z.literal("")),
+  accountNumber: z.union([
+    z
+      .string()
+      .min(8, "Account number must be at least 8 digits")
+      .max(17, "Account number cannot exceed 17 digits")
+      .regex(/^\d+$/, "Account number must contain only digits"),
+    z.literal(""),
+  ]),
   notes: z.string(),
 });
