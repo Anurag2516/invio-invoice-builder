@@ -15,6 +15,7 @@ const InvoiceFilterTabs = ({
     { key: "outstanding", label: "Outstanding" },
     { key: "paid", label: "Paid" },
     { key: "overdue", label: "Overdue" },
+    { key: "cancelled", label: "Cancelled" },
   ];
 
   return (

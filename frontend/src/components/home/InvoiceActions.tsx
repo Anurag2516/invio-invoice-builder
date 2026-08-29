@@ -1,29 +1,22 @@
-import type { Invoice } from '@/types/invoice';
-import { Download, Eye, Pencil, Trash2 } from 'lucide-react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import type { InvoiceResponse } from "@/types/invoice";
+import { Download, Eye, Pencil, Trash2 } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { PDFDownloadLink } from '@react-pdf/renderer';
-import InvoicePDF from '../invoice-pdf/InvoicePDF';
-import DeleteConfirmModal from '../ui/DeleteConfirmModal';
-import { useState } from 'react';
-import type { DeleteInvoice } from './InvoiceTable';
-import { getCurrencySign } from '@/utils/currency';
+} from "@/components/ui/tooltip";
+import { PDFDownloadLink } from "@react-pdf/renderer";
+import InvoicePDF from "../invoice-pdf/InvoicePDF";
+import DeleteConfirmModal from "../ui/DeleteConfirmModal";
+import { useState } from "react";
+import { getCurrencySign } from "@/utils/currency";
 
 interface InvoiceActionsProps {
-  invoices: Invoice[];
-  invoice: Invoice;
-  deleteInvoice: DeleteInvoice;
+  invoice: InvoiceResponse;
 }
 
-const InvoiceActions = ({
-  invoice,
-  deleteInvoice,
-  invoices,
-}: InvoiceActionsProps) => {
+const InvoiceActions = ({ invoice }: InvoiceActionsProps) => {
   const [deleteModalId, setDeleteModalId] = useState<string | null>(null);
 
   const navigate = useNavigate();
@@ -34,27 +27,12 @@ const InvoiceActions = ({
     setDeleteModalId(id);
   };
 
-  const handleConfirmDelete = () => {
-    if (deleteModalId) {
-      deleteInvoice(deleteModalId);
-      setDeleteModalId(null);
-    }
-  };
-
-  const handleCancelDelete = () => {
-    setDeleteModalId(null);
-  };
-
-  const deleteTargetInvoice = invoices.find(
-    (invoice) => invoice.id === deleteModalId,
-  );
-
   return (
     <>
       <div className="flex items-center justify-start md:justify-center gap-3 text-foreground/60 order-6 md:order-0 col-span-2 md:col-span-1">
         <Tooltip>
           <TooltipTrigger
-            onClick={() => navigate(`/invoices/${invoice.id}/edit`)}
+            onClick={() => navigate(`/invoices/edit?id=${invoice.id}`)}
             className="px-2 py-1.5 hover:bg-ring/30 hover:text-foreground rounded-md cursor-pointer transition-colors duration-150 ease-in-out"
           >
             <Pencil size={18} />
@@ -79,7 +57,7 @@ const InvoiceActions = ({
         <PDFDownloadLink
           document={
             <InvoicePDF
-              activeInvoice={invoice}
+              invoice={invoice}
               currency={getCurrencySign(invoice.currency)}
             />
           }
@@ -95,21 +73,23 @@ const InvoiceActions = ({
 
         <Tooltip>
           <TooltipTrigger
-            onClick={(e: React.SyntheticEvent) => handleDeleteBtnClick(e, invoice.id)}
+            onClick={(e: React.SyntheticEvent) =>
+              handleDeleteBtnClick(e, invoice.id)
+            }
             className="px-2 py-1.5 text-red-400/90 hover:bg-ring/30 rounded-md cursor-pointer transition-colors duration-150 ease-in-out"
           >
             <Trash2 size={18} />
           </TooltipTrigger>
           <TooltipContent>Delete Invoice</TooltipContent>
         </Tooltip>
+        {deleteModalId && (
+          <DeleteConfirmModal
+            deleteModalId={deleteModalId}
+            invoiceNumber={invoice.invoiceNumber}
+            onClose={() => setDeleteModalId(null)}
+          />
+        )}
       </div>
-      {deleteModalId && (
-        <DeleteConfirmModal
-          handleConfirmDelete={handleConfirmDelete}
-          handleCancelDelete={handleCancelDelete}
-          deleteTargetInvoice={deleteTargetInvoice}
-        />
-      )}
     </>
   );
 };

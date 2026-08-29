@@ -1,34 +1,26 @@
-import type { Invoice } from "@/types/invoice";
+import type { InvoiceResponse } from "@/types/invoice";
 import InvoiceActions from "./InvoiceActions";
 import { dateChecker } from "@/utils/dateChecker";
 import { CircleAlert } from "lucide-react";
-import type { useInvoiceStore } from "@/store/invoiceStore";
 import type { ActiveTab } from "@/pages/Home";
 import { ScrollArea } from "../ui/scroll-area";
 import { STATUS_STYLES } from "@/constants/statusStyles";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import { getCurrencySign } from "@/utils/currency";
-
-export type DeleteInvoice = ReturnType<
-  typeof useInvoiceStore.getState
->["deleteInvoice"];
+import { formatDate } from "@/utils/formatDate";
 
 interface InvoiceTableProps {
-  invoices: Invoice[];
-  deleteInvoice: DeleteInvoice;
+  invoices: InvoiceResponse[];
   activeTab: ActiveTab;
 }
 
-const InvoiceTable = ({
-  invoices,
-  deleteInvoice,
-  activeTab,
-}: InvoiceTableProps) => {
+const InvoiceTable = ({ invoices, activeTab }: InvoiceTableProps) => {
   const filteredInvoices = invoices.filter((invoice) => {
     if (activeTab === "all") return true;
     if (activeTab === "outstanding") return invoice.status === "Sent";
     if (activeTab === "paid") return invoice.status === "Paid";
     if (activeTab === "overdue") return dateChecker(invoice);
+    if (activeTab === "cancelled") return invoice.status === "Cancelled";
     return true;
   });
 
@@ -62,17 +54,26 @@ const InvoiceTable = ({
                 {invoice.invoiceNumber}
               </div>
 
-              <div className="order-2 md:order-0 col-span-2 md:col-span-1">
-                <div className="font-semibold text-foreground leading-tight">
-                  {invoice.client.name}
-                </div>
-                <div className="text-sm text-stone">
-                  {invoice.client.companyName}
-                </div>
+              <div className="order-2 md:order-0 col-span-2 md:col-span-1 text-sm">
+                {invoice.snapshotClientName || invoice.snapshotClientCompany ? (
+                  <>
+                    <div className="font-semibold text-foreground leading-tight">
+                      {invoice.snapshotClientName}
+                    </div>
+                    <div className="text-stone">
+                      {invoice.snapshotClientCompany}
+                    </div>
+                  </>
+                ) : (
+                  "-"
+                )}
               </div>
 
               <div className="text-sm text-foreground/90 inline-flex items-center gap-1 order-3 md:order-0">
-                {invoice.dueDate}
+                {invoice.dueDate
+                  ? formatDate(invoice.dueDate)
+                  : "-"}
+
                 {dateChecker(invoice) && activeTab !== "overdue" && (
                   <Tooltip>
                     <TooltipTrigger className="relative inline-flex text-red-400 cursor-pointer group">
@@ -83,9 +84,9 @@ const InvoiceTable = ({
                 )}
               </div>
 
-              <div className="text-left md:text-center text-sm text-foreground order-4 md:order-0">
+              <div className="text-right md:text-center text-sm text-foreground order-4 md:order-0">
                 {getCurrencySign(invoice.currency)}
-                {invoice.invoiceTotal.total}
+                {invoice.total}
               </div>
 
               <div className="flex justify-start md:justify-center order-5 md:order-0">
@@ -98,11 +99,7 @@ const InvoiceTable = ({
                 </span>
               </div>
 
-              <InvoiceActions
-                invoices={invoices}
-                invoice={invoice}
-                deleteInvoice={deleteInvoice}
-              />
+              <InvoiceActions invoice={invoice} />
             </div>
           ))
         )}
